@@ -163,7 +163,8 @@
             border: 2px solid var(--warning);
             font-weight: 600; padding: 8px 16px; border-radius: 8px;
             cursor: pointer; transition: all 0.3s ease;
-            position: relative; overflow: hidden;
+            position: relative;
+            overflow: hidden;
         }
         .interactive-btn-warning:hover {
             transform: translateY(-2px);
@@ -852,7 +853,7 @@
     <script>
         // --- CONSTANTS & DOM Elements ---
         const apiKey = "";
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
         const dom = {
             appHeader: document.getElementById('app-header'),
             // Toggles
@@ -1310,7 +1311,7 @@
         }
         
         async function extractTextFromImage(base64ImageData, mimeType) {
-            const model = 'gemini-2.5-flash-preview-05-20';
+            const model = 'gemini-2.5-flash-preview-09-2025';
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
             const prompt = `Analyze the book cover image. Extract the title, subtitle, and author. Respond with only a JSON object in the format: {"title": "...", "subtitle": "...", "author": "..."}. If a field is not found, use an empty string.`;
 
@@ -2931,36 +2932,4 @@
                 { q: "What subject is found in the 200s division?", o: ["Social Sciences", "Language", "Religion", "Literature"], a: 2, e: "The 200s main class is dedicated to Religion, including Christianity (220-280) and other world religions (290s)." },
                 { q: "The DDC number for the English language is:", o: ["410", "420", "430", "440"], a: 1, e: "The 400s are for Language. Within this class, 420 is specifically for the English language." },
                 { q: "Computer Science is located in which section?", o: ["001-009", "300-309", "510-519", "620-629"], a: 0, e: "Computer science is found in the 000s (Generalities), specifically in the 004-006 range." },
-                { q: "A book about the laws of Pakistan would be classified under which division?", o: ["320 (Political Science)", "340 (Law)", "954.91 (History of Pakistan)", "350 (Public Administration)"], a: 1, e: "Law is in the 340s. The number would be built further using Table 2 for Pakistan to specify 'Law of Pakistan'." },
-                { q: "Which division covers the subject of Chemistry?", o: ["510 (Mathematics)", "520 (Astronomy)", "530 (Physics)", "540 (Chemistry)"], a: 3, e: "Within the 500s (Science), the 540s division is specifically for Chemistry and allied sciences." },
-                { q: "The main class for Literature is:", o: ["700s", "800s", "400s", "900s"], a: 1, e: "The 800s class is for Literature, which is then subdivided by language (e.g., 820 for English literature)." },
-                { q: "Where would you classify a book about the architecture of mosques?", o: ["297 (Islam)", "710 (Civic & landscape art)", "720 (Architecture)", "900 (History)"], a: 2, e: "The book is primarily about architecture (720s). The specific religious aspect (mosques) would be added through number building, resulting in a number like 726." }
-            ]
-        ];
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            const introSplash = document.getElementById('intro-splash');
-            const accessGate = document.getElementById('access-gate');
-            
-            // Total duration of the splash screen
-            setTimeout(() => {
-                introSplash.classList.add('fade-out');
-
-                // Wait for fade-out to complete before hiding and showing the main content
-                setTimeout(() => {
-                    introSplash.style.display = 'none';
-                    
-                    // Show the access gate again so the logic can run
-                    accessGate.classList.remove('hidden');
-                    accessGate.classList.add('flex');
-                    
-                    // Now initialize the main logic
-                    initAccessGate();
-
-                }, 500); // This should match the fade-out animation duration
-            }, 4000); // Total splash screen time
-        });
-    </script>
-</body>
-</html>
-
+                { q: "A book about the laws of Pakistan would be classified under which division?", o: ["
