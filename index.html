@@ -1,0 +1,2967 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dewey Brain Interactive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Set theme on initial load
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <style>
+        /* New Color Palette Definition */
+        :root {
+            --primary: #1A3D7C;
+            --accent: #00C9FF;
+            --secondary: #5C5FE9;
+            --success: #00B37E;
+            --warning: #FFC947;
+            --error: #FF4B5C;
+            --bg-light: #F7F9FC;
+            --panel-light: #FFFFFF;
+            --text-light: #1E1E2F;
+            --text-light-muted: #5a647e;
+            --border-light: #e0e6f1;
+            --footer-bg-light: #F0F4FA;
+
+            --bg-dark: #0E1525;
+            --panel-dark: #1C2235;
+            --text-dark: #E8EBF0;
+            --text-dark-muted: #8a94a6;
+            --border-dark: #30384c;
+            --footer-bg-dark: #0A0F1A;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.5s ease;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            position: relative;
+            overflow-x: hidden;
+            padding-top: 80px; /* Space for fixed header */
+            padding-bottom: 60px; /* Space for fixed footer */
+        }
+        .dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            transition: opacity 0.5s ease-in-out;
+        }
+        html[lang="ur"] body, html[lang="ar"] body {
+            font-family: 'Noto Naskh Arabic', serif;
+        }
+        .loader {
+            border: 4px solid var(--border-light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        .dark .loader {
+             border: 4px solid var(--border-dark);
+             border-top-color: var(--accent);
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Interactive Button System */
+        .interactive-btn {
+            background-image: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-weight: 600;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(26, 61, 124, 0.25);
+            position: relative;
+            overflow: hidden;
+        }
+        .interactive-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 61, 124, 0.35);
+            background-image: linear-gradient(135deg, var(--secondary), var(--accent));
+        }
+        .dark .interactive-btn {
+            background-image: linear-gradient(135deg, var(--secondary), var(--accent));
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+        }
+        .dark .interactive-btn:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+            background-image: linear-gradient(135deg, var(--accent), var(--secondary));
+        }
+        .interactive-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: translateY(0);
+            box-shadow: 0 4px 14px rgba(26, 61, 124, 0.25);
+        }
+
+        .interactive-btn-secondary {
+            background: transparent;
+            color: var(--text-light-muted);
+            font-weight: 600;
+            padding: 12px 20px;
+            border: 2px solid var(--border-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .interactive-btn-secondary:hover {
+            transform: translateY(-2px);
+            border-color: var(--secondary);
+            color: var(--secondary);
+        }
+         .dark .interactive-btn-secondary {
+            color: var(--text-dark-muted);
+            border: 2px solid var(--border-dark);
+        }
+         .dark .interactive-btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        
+        .interactive-btn-success {
+            background-image: linear-gradient(135deg, var(--success), #00a87e);
+            color: white;
+            font-weight: 600; padding: 8px 24px; border: none; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(0, 179, 126, 0.25);
+            position: relative; overflow: hidden;
+        }
+        .interactive-btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 179, 126, 0.35);
+            background-image: linear-gradient(135deg, #00a87e, var(--success));
+        }
+
+        .interactive-btn-warning {
+            background: transparent;
+            color: var(--warning);
+            border: 2px solid var(--warning);
+            font-weight: 600; padding: 8px 16px; border-radius: 8px;
+            cursor: pointer; transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .interactive-btn-warning:hover {
+            transform: translateY(-2px);
+            background: var(--warning);
+            color: white;
+        }
+        .dark .interactive-btn-warning:hover {
+            color: var(--bg-dark);
+        }
+
+        .ripple {
+          position: absolute;
+          border-radius: 50%;
+          transform: scale(0);
+          animation: ripple 600ms linear;
+          background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        @keyframes ripple {
+          to {
+            transform: scale(4);
+            opacity: 0;
+          }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(14, 21, 37, 0.5);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            align-items: center; justify-content: center;
+        }
+        .modal.flex { display: flex; }
+        .modal-content {
+            width: 90%; max-width: 800px;
+            position: relative;
+            background-color: var(--panel-light);
+            border: 1px solid var(--border-light);
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+        }
+        .dark .modal-content {
+            background-color: var(--panel-dark);
+            border: 1px solid var(--border-dark);
+        }
+
+        .step-animation, .gate-animation, .quiz-animation {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+       
+        .table-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .table-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(26, 61, 124, 0.1); }
+        .dark .table-card:hover { box-shadow: 0 10px 20px rgba(0, 201, 255, 0.1); }
+
+        /* Animation toggle switch */
+        .switch { position: relative; display: inline-block; width: 34px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(14px); }
+        
+        /* Smooth transitions for theme switch */
+        #main-app, .modal-content, .access-code-input, input, select, button, header, footer, textarea {
+            transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease;
+        }
+        
+        /* Header & Footer */
+        header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: var(--panel-light)/80;
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-light);
+            transition: box-shadow 0.3s ease, background-color 0.5s ease, border-color 0.5s ease;
+        }
+        .dark header {
+            background: var(--panel-dark)/80;
+            border-bottom: 1px solid var(--border-dark);
+        }
+        header.scrolled {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .dark header.scrolled {
+             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: var(--footer-bg-light);
+            border-top: 1px solid var(--border-light);
+        }
+        .dark footer {
+            background: var(--footer-bg-dark);
+            border-top: 1px solid var(--border-dark);
+        }
+        
+        /* Hide/Unhide Advanced Options */
+        #advanced-options-toggle svg {
+            transition: transform 0.3s ease;
+        }
+        #advanced-options-toggle.open svg {
+            transform: rotate(180deg);
+        }
+        #advanced-options-content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: max-height 0.5s ease, opacity 0.5s ease, transform 0.5s ease;
+        }
+        #advanced-options-content.open {
+            max-height: 200px; /* Adjust as needed */
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Linked Data & Debate Styles */
+        .lod-result-card, .debate-card {
+            border: 1px solid var(--border-light);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+        .dark .lod-result-card, .dark .debate-card {
+             border: 1px solid var(--border-dark);
+        }
+        .lod-result-card:hover, .debate-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(0, 201, 255, 0.2);
+        }
+        .lod-result-card.recommended {
+            border-color: var(--success);
+            box-shadow: 0 0 15px rgba(0, 179, 126, 0.3);
+        }
+        .debate-card.alternative { border-left-color: var(--warning); border-left-width: 4px; }
+        .debate-card.best { border-left-color: var(--success); border-left-width: 4px; }
+        .linked-data-view {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+         .linked-data-view.open {
+            max-height: 300px;
+        }
+        
+        /* Image Upload Styles */
+        #image-drop-zone {
+            border: 2px dashed var(--border-light);
+            transition: border-color 0.3s ease, background-color 0.3s ease;
+        }
+        .dark #image-drop-zone {
+            border-color: var(--border-dark);
+        }
+        #image-drop-zone.dragover {
+            border-color: var(--accent);
+            background-color: rgba(0, 201, 255, 0.05);
+        }
+        
+        /* Historical Evolution Timeline */
+        .timeline-container {
+            position: relative;
+            padding: 1rem 0;
+        }
+        .timeline-line {
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: var(--border-light);
+            transform: translateY(-50%);
+        }
+        .dark .timeline-line { background-color: var(--border-dark); }
+        .timeline-item {
+            position: relative;
+            cursor: pointer;
+        }
+        .timeline-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid var(--panel-light);
+            transform: translate(-50%, -50%);
+            transition: transform 0.2s ease;
+        }
+        .dark .timeline-dot { border-color: var(--panel-dark); }
+        .timeline-item:hover .timeline-dot {
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        .timeline-tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background-color: var(--text-light);
+            color: var(--panel-light);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .dark .timeline-tooltip {
+             background-color: var(--text-dark);
+            color: var(--panel-dark);
+        }
+        .timeline-item:hover .timeline-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        /* Live Practice Mode Styles */
+        #live-practice-timer-bar {
+            transition: width 1s linear;
+        }
+        .feedback-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .feedback-correct { border-left-color: var(--success); border-left-width: 4px; }
+        .feedback-partial { border-left-color: var(--warning); border-left-width: 4px; }
+        .feedback-incorrect { border-left-color: var(--error); border-left-width: 4px; }
+
+        /* DDC Quiz System Styles */
+        .quiz-option {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+            border: 1px solid var(--border-light);
+            transition: all 0.2s ease-in-out;
+        }
+        .dark .quiz-option {
+            border: 1px solid var(--border-dark);
+        }
+        .quiz-option:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent);
+            background: linear-gradient(135deg, rgba(0,201,255,0.1), rgba(0,201,255,0.05));
+        }
+        .quiz-option.selected {
+             border-color: var(--secondary);
+             background: linear-gradient(135deg, rgba(92,95,233,0.15), rgba(92,95,233,0.05));
+             box-shadow: 0 0 10px rgba(92,95,233,0.2);
+        }
+        .quiz-option.correct {
+            border-color: var(--success);
+            background-color: rgba(0,179,126,0.1);
+        }
+        .quiz-option.incorrect {
+            border-color: var(--error);
+            background-color: rgba(255,75,92,0.1);
+        }
+        .progress-bar-container {
+            height: 10px;
+            background-color: var(--border-light);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .dark .progress-bar-container {
+             background-color: var(--border-dark);
+        }
+        .progress-bar {
+            height: 100%;
+            background-image: linear-gradient(to right, var(--accent), var(--secondary));
+            transition: width 1s linear;
+        }
+        .stage-indicator {
+            transition: all 0.3s ease;
+        }
+        .stage-indicator.active {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        .stage-indicator.completed {
+            color: var(--success);
+        }
+        .stage-indicator.locked {
+            color: var(--text-light-muted);
+            opacity: 0.6;
+        }
+
+        @keyframes confetti-fall {
+            0% { transform: translateY(-100vh) rotateZ(0deg); }
+            100% { transform: translateY(100vh) rotateZ(720deg); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            opacity: 0.7;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        #quiz-result-circle {
+            width: 150px;
+            height: 150px;
+        }
+        #quiz-result-circle circle {
+            transition: stroke-dashoffset 1.5s ease-out;
+        }
+
+        /* Intro Splash Screen */
+        #intro-splash {
+            background: linear-gradient(135deg, #0E1525, #004d40, #00c9ff);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .intro-logo {
+            animation: logo-bounce-in 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            position: relative;
+        }
+        
+        #intro-title {
+            background: linear-gradient(135deg, var(--accent), var(--success));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            position: relative;
+            overflow: hidden; /* To contain the shimmer */
+        }
+        
+        #intro-title::after {
+            content: '';
+            position: absolute;
+            top: -10%; left: -150%;
+            width: 200%; height: 120%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(20deg);
+            animation: shimmer 4s infinite 1.5s;
+        }
+
+        .intro-text {
+            opacity: 0;
+            background: linear-gradient(90deg, #00c9ff, #00b37e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-fill-color: transparent;
+            animation: fade-in 1s ease-out 0.5s forwards;
+        }
+
+        .intro-progress-bar-container {
+             background-color: rgba(255,255,255,0.2);
+             border-radius: 2px;
+             padding: 2px;
+        }
+
+        .intro-progress-bar {
+            height: 4px;
+            background-color: #00c9ff;
+            border-radius: 2px;
+            width: 0%;
+            animation: progress-load 3s ease-in-out 1s forwards;
+        }
+
+        #intro-splash.fade-out {
+            animation: fade-out 0.5s ease-in forwards;
+        }
+
+        @keyframes logo-bounce-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            80% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes progress-load {
+            from { width: 0%; }
+            to { width: 100%; }
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            40% { left: 150%; }
+            100% { left: 150%; }
+        }
+
+        @keyframes fade-out {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #historical-evolution-modal .modal-content, #historical-evolution-modal .modal-content *,
+            #practice-report-modal .modal-content,  #practice-report-modal .modal-content *,
+            #quiz-modal .modal-content, #quiz-modal .modal-content * {
+                visibility: visible;
+            }
+            #historical-evolution-modal, #practice-report-modal, #quiz-modal {
+                position: absolute;
+                left: 0;
+                top: 0;
+                display: block !important;
+                background: none;
+                backdrop-filter: none;
+            }
+             #historical-evolution-modal .modal-content, #practice-report-modal .modal-content, #quiz-modal .modal-content {
+                box-shadow: none;
+                border: none;
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+
+    </style>
+</head>
+<body class="">
+
+    <div id="intro-splash" class="fixed inset-0 z-[1001] flex flex-col items-center justify-center">
+        <h1 id="intro-title" class="text-6xl font-bold intro-logo">Dewey Brain</h1>
+        <p class="intro-text mt-4 text-lg font-medium">Made By Muhammad Faizan Adnan</p>
+        <div class="intro-progress-bar-container mt-6 w-64">
+            <div class="intro-progress-bar"></div>
+        </div>
+    </div>
+
+    <header id="app-header">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-2xl bg-clip-text text-transparent bg-gradient-to-r from-[--primary] to-[--secondary] dark:from-[--accent] dark:to-[--secondary]">Dewey Brain</span>
+                </div>
+                <div class="flex items-center space-x-2 text-[--text-light-muted] dark:text-[--text-dark-muted]">
+                    <button id="header-quiz-btn" title="DDC Quiz" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </button>
+                    <button id="header-practice-btn" title="Live Practice Mode" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                    <button id="header-reference-btn" title="DDC Reference" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253z"></path></svg>
+                    </button>
+                    <button id="header-chat-btn" title="AI Chat Assistant" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+                   </button>
+                    <button id="header-history-btn" title="Classification History" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                   </button>
+                   <div class="relative inline-block text-left">
+                        <button id="language-selector-btn" title="Select Language" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10" data-i18n-title="selectLanguageTitle">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.06 7.127A7.5 7.5 0 1019.5 12a7.52 7.52 0 00-1.28-4.137m-3.16-3.163A7.5 7.5 0 105.863 16.28M12 21a9 9 0 100-18 9 9 0 000 18z"></path></svg>
+                        </button>
+                        <div id="language-dropdown" class="origin-top-right absolute right-0 mt-2 w-40 rounded-md shadow-lg bg-[--panel-light] dark:bg-[--panel-dark] ring-1 ring-black/5 dark:ring-white/10 focus:outline-none hidden" role="menu" aria-orientation="vertical" aria-labelledby="language-selector-btn">
+                            <div class="py-1" role="none">
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="en">🇬🇧 English</a>
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="ur">🇵🇰 Urdu</a>
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="ar">🇸🇦 Arabic</a>
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="fr">🇫🇷 French</a>
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="es">🇪🇸 Spanish</a>
+                                <a href="#" class="language-option text-[--text-light] dark:text-[--text-dark] block px-4 py-2 text-sm hover:bg-black/5 dark:hover:bg-white/10" role="menuitem" data-lang="zh">🇨🇳 Chinese</a>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="theme-toggle" title="Toggle Dark Mode" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10" data-i18n-title="toggleDarkModeTitle">
+                        <svg id="theme-icon-light" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="theme-icon-dark" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <canvas id="background-canvas"></canvas>
+
+    <!-- Access Key Gate -->
+    <div id="access-gate" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/30">
+        <div class="w-full max-w-md p-8 space-y-4 bg-[--panel-light] dark:bg-[--panel-dark] rounded-2xl shadow-2xl gate-animation border border-[--border-light] dark:border-[--border-dark]">
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-[--text-light] dark:text-[--text-dark]" data-i18n="accessKeyTitle">🔑 Enter Access Key</h2>
+                <p class="mt-2 text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]" data-i18n="accessKeySubtitle">Enter your 4-digit access code to continue.</p>
+            </div>
+            <div id="access-form">
+                <div class="flex justify-center gap-3 my-4">
+                    <input type="text" maxlength="1" class="access-code-input w-14 h-16 text-center text-3xl font-semibold bg-gray-100 dark:bg-[--bg-dark] border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] text-[--text-light] dark:text-[--text-dark]" />
+                    <input type="text" maxlength="1" class="access-code-input w-14 h-16 text-center text-3xl font-semibold bg-gray-100 dark:bg-[--bg-dark] border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] text-[--text-light] dark:text-[--text-dark]" />
+                    <input type="text" maxlength="1" class="access-code-input w-14 h-16 text-center text-3xl font-semibold bg-gray-100 dark:bg-[--bg-dark] border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] text-[--text-light] dark:text-[--text-dark]" />
+                    <input type="text" maxlength="1" class="access-code-input w-14 h-16 text-center text-3xl font-semibold bg-gray-100 dark:bg-[--bg-dark] border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] text-[--text-light] dark:text-[--text-dark]" />
+                </div>
+                <div class="flex items-center justify-between mt-6">
+                    <label class="flex items-center text-sm">
+                        <input type="checkbox" id="remember-device" class="h-4 w-4 text-[--primary] border-[--border-light] rounded focus:ring-[--accent]">
+                        <span class="ml-2 text-[--text-light-muted] dark:text-[--text-dark-muted]" data-i18n="rememberDevice">Remember this device</span>
+                    </label>
+                    <button id="access-help-btn" class="text-sm text-[--secondary] hover:underline" title="The default access key is 5491." data-i18n="help">Help</button>
+                </div>
+                 <p id="access-error" class="text-center text-[--error] text-sm h-5 mt-4"></p>
+                <button id="access-submit-btn" class="w-full mt-4 interactive-btn disabled:opacity-60" disabled data-i18n="submit">
+                    Submit
+                </button>
+            </div>
+             <div id="lockout-timer-container" class="hidden text-center mt-4">
+                <p class="text-[--warning]" data-i18n="tooManyAttempts">Too many incorrect attempts.</p>
+                <p class="text-lg" data-i18n="tryAgainIn">Please try again in <span id="lockout-timer" class="font-bold">15</span> seconds.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application (Initially hidden) -->
+    <div id="main-app" class="w-full max-w-4xl mx-auto bg-[--panel-light]/80 dark:bg-[--panel-dark]/80 backdrop-blur-xl rounded-2xl shadow-2xl shadow-blue-900/10 dark:shadow-black/20 p-6 md:p-8 my-8 relative hidden border border-white/50 dark:border-[--border-dark]">
+        <!-- Header & Controls -->
+        <div class="flex justify-between items-center mb-6">
+            <div class="text-center">
+                <h1 class="text-3xl md:text-4xl font-bold text-[--text-light] dark:text-[--text-dark]" data-i18n="appTitle">Dewey Brain Interactive</h1>
+                <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]" data-i18n="appSubtitle">Intelligent DDC Classification Assistant</p>
+                <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted] mt-1" data-i18n="author">Made By Muhammad Faizan Adnan</p>
+            </div>
+             <!-- Toggles -->
+            <div class="absolute top-4 right-4 flex flex-col items-end space-y-2 text-xs text-[--text-light-muted] dark:text-[--text-dark-muted]">
+                <div class="flex items-center space-x-2">
+                    <span>BG FX</span>
+                    <label class="switch">
+                        <input type="checkbox" id="animation-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                     <span>🧩 Use Linked Data</span>
+                    <label class="switch">
+                        <input type="checkbox" id="linked-data-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="flex items-center space-x-2">
+                     <span>🔎 Show Debate Details</span>
+                    <label class="switch">
+                        <input type="checkbox" id="debate-details-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="mb-6 flex justify-center bg-black/5 dark:bg-white/5 rounded-lg p-1">
+            <button id="tab-generate" class="tab-btn w-1/2 py-2 rounded-md font-semibold text-[--text-light-muted] dark:text-[--text-dark-muted] transition-colors duration-300" data-i18n="tabGenerate">Generate DDC</button>
+            <button id="tab-verify" class="tab-btn w-1/2 py-2 rounded-md font-semibold text-[--text-light-muted] dark:text-[--text-dark-muted] transition-colors duration-300" data-i18n="tabVerify">Verify DDC</button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Left Panel: Input -->
+            <div class="space-y-4">
+                <!-- Image Upload Section -->
+                <div id="image-drop-zone" class="relative p-4 rounded-lg text-center cursor-pointer bg-black/5 dark:bg-white/5">
+                    <input type="file" id="image-upload-input" class="hidden" accept="image/jpeg, image/png, image/webp">
+                    <div id="image-upload-prompt">
+                         <svg class="mx-auto h-12 w-12 text-[--text-light-muted] dark:text-[--text-dark-muted]" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true"><path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                        <p class="mt-2 text-sm font-semibold">Click to upload or drag & drop</p>
+                        <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted]">JPG, PNG, or WEBP</p>
+                    </div>
+                    <div id="image-preview-container" class="hidden"></div>
+                </div>
+                <div id="image-analysis-container" class="hidden space-y-2">
+                    <label for="detected-text-input" class="block text-sm font-medium">Detected Text (Editable)</label>
+                    <textarea id="detected-text-input" rows="3" class="block w-full px-3 py-2 bg-white/50 dark:bg-black/20 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent] text-sm"></textarea>
+                </div>
+
+
+                 <!-- Edition Selector -->
+                <div>
+                    <label class="block text-sm font-medium text-[--text-light] dark:text-[--text-dark] mb-2" data-i18n="ddcEdition">DDC Edition</label>
+                    <div class="flex items-center space-x-2 bg-black/5 dark:bg-white/5 border border-[--border-light] dark:border-[--border-dark] rounded-lg p-1">
+                        <button data-edition="23rd" class="edition-btn flex-1 text-center py-2 rounded-md transition-colors duration-300">23rd</button>
+                        <button data-edition="21st" class="edition-btn flex-1 text-center py-2 rounded-md transition-colors duration-300">21st</button>
+                        <button data-edition="auto" class="edition-btn flex-1 text-center py-2 rounded-md transition-colors duration-300" data-i18n="autoDetect">Auto-Detect</button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="title-input" class="block text-sm font-medium" data-i18n="titleSubject">Title / Subject</label>
+                        <div class="flex space-x-2">
+                             <button id="practice-title-btn" class="text-xs bg-purple-500/10 text-purple-700 dark:text-purple-300 font-semibold py-1 px-3 rounded-full hover:bg-purple-500/20 transition" data-i18n="practiceTitle">🎲 Practice Title</button>
+                             <button id="suggest-btn" class="text-xs bg-sky-500/10 text-sky-700 dark:text-sky-300 font-semibold py-1 px-3 rounded-full hover:bg-sky-500/20 transition" data-i18n="suggestSubjects">✨ Suggest Subjects</button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="text" id="title-input" class="block w-full pl-4 pr-10 py-3 bg-white/50 dark:bg-black/20 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent]" placeholder="e.g., A History of Chemistry in Germany" data-i18n-placeholder="titlePlaceholder">
+                         <button id="voice-input-btn" title="Use Voice Input" class="absolute inset-y-0 right-0 flex items-center pr-3 text-[--text-light-muted] dark:text-[--text-dark-muted]" data-i18n-title="voiceInputTitle">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="verify-section" class="hidden">
+                    <label for="ddc-input" class="block text-sm font-medium mb-1" data-i18n="ddcNumberToVerify">DDC Number to Verify</label>
+                    <input type="text" id="ddc-input" class="block w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent]" placeholder="e.g., 540.943" data-i18n-placeholder="ddcPlaceholder">
+                </div>
+            
+                <div>
+                     <button id="advanced-options-toggle" class="w-full flex justify-between items-center text-sm font-medium text-[--text-light-muted] dark:text-[--text-dark-muted] py-2">
+                        <span>Advanced Options</span>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="advanced-options-content">
+                        <div class="pt-2">
+                             <label for="hint-input" class="block text-sm font-medium mb-1" data-i18n="instructionHint">Instruction or Hint</label>
+                             <input type="text" id="hint-input" class="block w-full px-4 py-3 bg-white/50 dark:bg-black/20 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent]" placeholder="e.g., research paper, focus on Pakistan" data-i18n-placeholder="hintPlaceholder">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex space-x-3 pt-2">
+                    <button id="main-action-btn" class="w-full interactive-btn" data-i18n="generateDDCNumber">
+                        ✨ Generate DDC Number
+                    </button>
+                    <button id="clear-btn" class="w-1/3 interactive-btn-secondary" data-i18n="clear">
+                        Clear
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Right Panel: Output -->
+            <div id="results-wrapper" class="bg-black/5 dark:bg-white/5 p-6 rounded-lg border border-[--border-light] dark:border-[--border-dark] min-h-[300px]">
+                <div id="loader-container" class="hidden h-full flex justify-center items-center flex-col">
+                    <div class="loader"></div>
+                    <p id="loader-text" class="ml-4 mt-4 text-[--text-light-muted] dark:text-[--text-dark-muted]" data-i18n="analyzing">Analyzing...</p>
+                </div>
+                <div id="output-container" class="text-[--text-light] dark:text-[--text-dark]">
+                    <div class="text-center text-gray-400 dark:text-gray-500 h-full flex flex-col justify-center items-center">
+                         <svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h7"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M14 5l7 7-7 7"></path></svg>
+                        <p data-i18n="resultsAppearHere">Your classification results will appear here.</p>
+                    </div>
+                </div>
+                 <div id="lod-output-container" class="hidden space-y-3"></div>
+                 <div id="debate-output-container" class="hidden space-y-4"></div>
+                <div id="error-message" class="hidden text-[--error] text-center font-medium"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="quiz-modal" class="modal"><div class="modal-content rounded-lg p-6 relative overflow-hidden"><!-- Injected --></div></div>
+    <div id="live-practice-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="practice-report-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="reference-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="practice-title-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="report-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="history-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="ai-chat-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    <div id="historical-evolution-modal" class="modal"><div class="modal-content rounded-lg p-6"><!-- Injected --></div></div>
+    
+    <footer>
+        <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">
+            <p>&copy; <span id="footer-year">2025</span> Dewey Brain Interactive. All rights reserved.</p>
+            <div class="flex space-x-4 mt-2 sm:mt-0">
+                <a href="#" class="hover:text-[--secondary] transition">Help</a>
+                <a href="#" class="hover:text-[--secondary] transition">Feedback</a>
+                <a href="#" class="hover:text-[--secondary] transition">Privacy</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // --- CONSTANTS & DOM Elements ---
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const dom = {
+            appHeader: document.getElementById('app-header'),
+            // Toggles
+            backgroundCanvas: document.getElementById('background-canvas'),
+            animationToggle: document.getElementById('animation-toggle'),
+            linkedDataToggle: document.getElementById('linked-data-toggle'),
+            debateDetailsToggle: document.getElementById('debate-details-toggle'),
+
+            // Image Upload
+            imageDropZone: document.getElementById('image-drop-zone'),
+            imageUploadInput: document.getElementById('image-upload-input'),
+            imageUploadPrompt: document.getElementById('image-upload-prompt'),
+            imagePreviewContainer: document.getElementById('image-preview-container'),
+            imageAnalysisContainer: document.getElementById('image-analysis-container'),
+            detectedTextInput: document.getElementById('detected-text-input'),
+
+
+            // Access Gate
+            accessGate: document.getElementById('access-gate'),
+            mainApp: document.getElementById('main-app'),
+            accessCodeInputs: document.querySelectorAll('.access-code-input'),
+            accessSubmitBtn: document.getElementById('access-submit-btn'),
+            accessError: document.getElementById('access-error'),
+            rememberDeviceCheck: document.getElementById('remember-device'),
+            accessForm: document.getElementById('access-form'),
+            lockoutContainer: document.getElementById('lockout-timer-container'),
+            lockoutTimer: document.getElementById('lockout-timer'),
+            
+            // Main elements
+            titleInput: document.getElementById('title-input'),
+            hintInput: document.getElementById('hint-input'),
+            ddcInput: document.getElementById('ddc-input'),
+            resultsWrapper: document.getElementById('results-wrapper'),
+            loaderContainer: document.getElementById('loader-container'),
+            loaderText: document.getElementById('loader-text'),
+            outputContainer: document.getElementById('output-container'),
+            lodOutputContainer: document.getElementById('lod-output-container'),
+            debateOutputContainer: document.getElementById('debate-output-container'),
+            errorMessageEl: document.getElementById('error-message'),
+            verifySection: document.getElementById('verify-section'),
+
+            // Advanced Options Toggle
+            advancedOptionsToggle: document.getElementById('advanced-options-toggle'),
+            advancedOptionsContent: document.getElementById('advanced-options-content'),
+
+            // Buttons
+            mainActionBtn: document.getElementById('main-action-btn'),
+            practiceTitleBtn: document.getElementById('practice-title-btn'),
+            suggestBtn: document.getElementById('suggest-btn'),
+            clearBtn: document.getElementById('clear-btn'),
+            voiceInputBtn: document.getElementById('voice-input-btn'),
+            tabGenerate: document.getElementById('tab-generate'),
+            tabVerify: document.getElementById('tab-verify'),
+            themeToggle: document.getElementById('theme-toggle'),
+            languageSelectorBtn: document.getElementById('language-selector-btn'),
+            languageDropdown: document.getElementById('language-dropdown'),
+            languageOptions: document.querySelectorAll('.language-option'),
+            
+            // Header buttons (for modal triggers)
+            headerQuizBtn: document.getElementById('header-quiz-btn'),
+            headerPracticeBtn: document.getElementById('header-practice-btn'),
+            headerReferenceBtn: document.getElementById('header-reference-btn'),
+            headerChatBtn: document.getElementById('header-chat-btn'),
+            headerHistoryBtn: document.getElementById('header-history-btn'),
+
+            // Modals
+            quizModal: document.getElementById('quiz-modal'),
+            livePracticeModal: document.getElementById('live-practice-modal'),
+            practiceReportModal: document.getElementById('practice-report-modal'),
+            referenceModal: document.getElementById('reference-modal'),
+            practiceTitleModal: document.getElementById('practice-title-modal'),
+            reportModal: document.getElementById('report-modal'),
+            historyModal: document.getElementById('history-modal'),
+            aiChatModal: document.getElementById('ai-chat-modal'),
+            historicalEvolutionModal: document.getElementById('historical-evolution-modal'),
+        };
+
+        // --- STATE ---
+        let state = {
+            currentMode: 'generate', // 'generate' or 'verify'
+            selectedEdition: '23rd',
+            selectedLanguage: localStorage.getItem('selectedLanguage') || 'en',
+            lastResultData: null,
+            history: JSON.parse(localStorage.getItem('ddcHistory')) || [],
+            chatHistory: [], // For context-aware chat
+            practiceMode: {
+                isActive: false,
+                questions: [],
+                currentQuestionIndex: 0,
+                score: 0,
+                timer: null,
+                startTime: null,
+                questionStartTime: null,
+            },
+            quiz: JSON.parse(localStorage.getItem('ddcQuizProgress')) || {
+                currentStage: 0,
+                scores: [0, 0, 0],
+                stageStatus: ['active', 'locked', 'locked'], // active, completed, locked
+                timer: null,
+                soundEnabled: true,
+                currentQuestions: [],
+                currentQuestionIndex: 0,
+                userAnswers: [],
+            },
+            animation: { enabled: localStorage.getItem('animationEnabled') !== 'false', animationFrameId: null, particles: [], mouse: { x: null, y: null } },
+            advancedOptionsOpen: localStorage.getItem('advancedOptionsOpen') === 'true',
+            useLinkedData: localStorage.getItem('useLinkedData') !== 'false',
+            showDebateDetails: localStorage.getItem('showDebateDetails') !== 'false',
+            lodCache: JSON.parse(sessionStorage.getItem('lodCache')) || {},
+        };
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = state.selectedLanguage;
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+        }
+
+        // --- TRANSLATION ---
+        const translations = {
+            en: {
+                accessKeyTitle: '🔑 Enter Access Key',
+                accessKeySubtitle: 'Enter your 4-digit access code to continue.',
+                rememberDevice: 'Remember this device',
+                help: 'Help',
+                submit: 'Submit',
+                tooManyAttempts: 'Too many incorrect attempts.',
+                tryAgainIn: 'Please try again in {seconds} seconds.',
+                appTitle: 'Dewey Brain Interactive',
+                appSubtitle: 'Intelligent DDC Classification Assistant',
+                author: 'Made By Muhammad Faizan Adnan',
+                selectLanguageTitle: 'Select Language',
+                toggleDarkModeTitle: 'Toggle Dark Mode',
+                tabGenerate: 'Generate DDC',
+                tabVerify: 'Verify DDC',
+                ddcEdition: 'DDC Edition',
+                autoDetect: 'Auto-Detect',
+                titleSubject: 'Title / Subject',
+                practiceTitle: '🎲 Practice Title',
+                suggestSubjects: '✨ Suggest Subjects',
+                titlePlaceholder: 'e.g., A History of Chemistry in Germany',
+                voiceInputTitle: 'Use Voice Input',
+                ddcNumberToVerify: 'DDC Number to Verify',
+                ddcPlaceholder: 'e.g., 540.943',
+                instructionHint: 'Instruction or Hint',
+                hintPlaceholder: 'e.g., research paper, focus on Pakistan',
+                generateDDCNumber: '✨ Generate DDC Number',
+                verifyDDCNumber: '✔️ Verify DDC Number',
+                clear: 'Clear',
+                analyzing: 'Analyzing with AI...',
+                extractingText: 'Extracting text from image...',
+                fetchingLOD: 'Fetching Library Data...',
+                debating: 'AI Debate in Progress...',
+                fetchingHistory: 'Fetching Historical Data...',
+                resultsAppearHere: 'Your classification results will appear here.',
+            },
+            ur: {
+                accessKeyTitle: '🔑 رسائی کلید درج کریں',
+                accessKeySubtitle: 'جاری رکھنے کے لیے اپنا 4 ہندسوں کا رسائی کوڈ درج کریں۔',
+                rememberDevice: 'اس ڈیوائس کو یاد رکھیں',
+                help: 'مدد',
+                submit: 'جمع کرائیں',
+                tooManyAttempts: 'بہت زیادہ غلط کوششیں۔',
+                tryAgainIn: 'براہ کرم {seconds} سیکنڈ میں دوبارہ کوشش کریں۔',
+                appTitle: 'ڈیوی برین انٹرایکٹو',
+                appSubtitle: 'ذہین ڈی ڈی سی درجہ بندی اسسٹنٹ',
+                author: 'محمد فیضان عدنان کی طرف سے بنایا گیا',
+                selectLanguageTitle: 'زبان منتخب کریں',
+                toggleDarkModeTitle: 'ڈارک موڈ کو ٹوگل کریں',
+                tabGenerate: 'DDC بنائیں',
+                tabVerify: 'DDC کی تصدیق کریں',
+                ddcEdition: 'DDC ایڈیشن',
+                autoDetect: 'خودکار شناخت',
+                titleSubject: 'عنوان / موضوع',
+                practiceTitle: '🎲 مشقی عنوان',
+                suggestSubjects: '✨ مضامین تجویز کریں',
+                titlePlaceholder: 'مثلاً، جرمنی میں کیمسٹری کی تاریخ',
+                voiceInputTitle: 'صوتی ان پٹ استعمال کریں',
+                ddcNumberToVerify: 'تصدیق کے لیے DDC نمبر',
+                ddcPlaceholder: 'مثلاً، 540.943',
+                instructionHint: 'ہدایت یا اشارہ',
+                hintPlaceholder: 'مثلاً، تحقیقی مقالہ، پاکستان پر توجہ مرکوز کریں',
+                generateDDCNumber: '✨ DDC نمبر بنائیں',
+                verifyDDCNumber: '✔️ DDC نمبر کی تصدیق کریں',
+                clear: 'صاف کریں',
+                analyzing: 'تجزیہ کیا جا رہا ہے...',
+                extractingText: 'تصویر سے متن نکالا جا رہا ہے...',
+                fetchingLOD: 'لائبریری ڈیٹا حاصل کیا جا رہا ہے...',
+                debating: 'AI بحث جاری ہے...',
+                fetchingHistory: 'تاریخی ڈیٹا حاصل کیا جا رہا ہے...',
+                resultsAppearHere: 'آپ کی درجہ بندی کے نتائج یہاں ظاہر ہوں گے۔',
+            },
+             ar: {
+                accessKeyTitle: '🔑 أدخل مفتاح الوصول',
+                accessKeySubtitle: 'أدخل رمز الوصول المكون من 4 أرقام للمتابعة.',
+                rememberDevice: 'تذكر هذا الجهاز',
+                help: 'مساعدة',
+                submit: 'إرسال',
+                tooManyAttempts: 'محاولات غير صحيحة كثيرة جدًا.',
+                tryAgainIn: 'يرجى المحاولة مرة أخرى في غضون {seconds} ثوانٍ.',
+                appTitle: 'ديوي برين التفاعلي',
+                appSubtitle: 'مساعد تصنيف ديوي العشري الذكي',
+                author: 'صنع بواسطة محمد فيضان عدنان',
+                selectLanguageTitle: 'اختار اللغة',
+                toggleDarkModeTitle: 'تبديل الوضع الداكن',
+                tabGenerate: 'إنشاء DDC',
+                tabVerify: 'التحقق من DDC',
+                ddcEdition: 'إصدار DDC',
+                autoDetect: 'اكتشاف تلقائي',
+                titleSubject: 'العنوان / الموضوع',
+                practiceTitle: '🎲 عنوان تدريبي',
+                suggestSubjects: '✨ اقتراح مواضيع',
+                titlePlaceholder: 'على سبيل المثال، تاريخ الكيمياء في ألمانيا',
+                voiceInputTitle: 'استخدام الإدخال الصوتي',
+                ddcNumberToVerify: 'رقم DDC للتحقق',
+                ddcPlaceholder: 'على سبيل المثال، 540.943',
+                instructionHint: 'تعليمات أو تلميح',
+                hintPlaceholder: 'على سبيل المثال، ورقة بحثية، التركيز على باكستان',
+                generateDDCNumber: '✨ إنشاء رقم DDC',
+                verifyDDCNumber: '✔️ التحقق من رقم DDC',
+                clear: 'مسح',
+                analyzing: 'يتم التحليل...',
+                extractingText: 'جارٍ استخراج النص من الصورة...',
+                fetchingLOD: 'جارٍ جلب بيانات المكتبة...',
+                debating: 'مناقشة الذكاء الاصطناعي جارية...',
+                fetchingHistory: 'جارٍ جلب البيانات التاريخية...',
+                resultsAppearHere: 'ستظهر نتائج التصنيف الخاصة بك هنا.',
+            },
+            fr: {
+                accessKeyTitle: '🔑 Entrez la clé d\'accès',
+                accessKeySubtitle: 'Entrez votre code d\'accès à 4 chiffres pour continuer.',
+                rememberDevice: 'Se souvenir de cet appareil',
+                help: 'Aide',
+                submit: 'Soumettre',
+                tooManyAttempts: 'Trop de tentatives incorrectes.',
+                tryAgainIn: 'Veuillez réessayer dans {seconds} secondes.',
+                appTitle: 'Dewey Brain Interactif',
+                appSubtitle: 'Assistant de classification DDC intelligent',
+                author: 'Créé par Muhammad Faizan Adnan',
+                selectLanguageTitle: 'Choisir la langue',
+                toggleDarkModeTitle: 'Basculer le mode sombre',
+                tabGenerate: 'Générer DDC',
+                tabVerify: 'Vérifier DDC',
+                ddcEdition: 'Édition DDC',
+                autoDetect: 'Détection auto',
+                titleSubject: 'Titre / Sujet',
+                practiceTitle: '🎲 Titre d\'entraînement',
+                suggestSubjects: '✨ Suggérer des sujets',
+                titlePlaceholder: 'ex: Une histoire de la chimie en Allemagne',
+                voiceInputTitle: 'Utiliser la saisie vocale',
+                ddcNumberToVerify: 'Numéro DDC à vérifier',
+                ddcPlaceholder: 'ex: 540.943',
+                instructionHint: 'Instruction ou Indice',
+                hintPlaceholder: 'ex: article de recherche, focus sur le Pakistan',
+                generateDDCNumber: '✨ Générer le numéro DDC',
+                verifyDDCNumber: '✔️ Vérifier le numéro DDC',
+                clear: 'Effacer',
+                analyzing: 'Analyse en cours...',
+                extractingText: 'Extraction du texte de l\'image...',
+                fetchingLOD: 'Récupération des données de la bibliothèque...',
+                debating: 'Débat de l\'IA en cours...',
+                fetchingHistory: 'Récupération des données historiques...',
+                resultsAppearHere: 'Vos résultats de classification apparaîtront ici.',
+            },
+            es: {
+                accessKeyTitle: '🔑 Ingrese la clave de acceso',
+                accessKeySubtitle: 'Ingrese su código de acceso de 4 dígitos para continuar.',
+                rememberDevice: 'Recordar este dispositivo',
+                help: 'Ayuda',
+                submit: 'Enviar',
+                tooManyAttempts: 'Demasiados intentos incorrectos.',
+                tryAgainIn: 'Por favor, inténtelo de nuevo en {seconds} segundos.',
+                appTitle: 'Dewey Brain Interactivo',
+                appSubtitle: 'Asistente inteligente de clasificación DDC',
+                author: 'Hecho por Muhammad Faizan Adnan',
+                selectLanguageTitle: 'Seleccionar idioma',
+                toggleDarkModeTitle: 'Alternar modo oscuro',
+                tabGenerate: 'Generar DDC',
+                tabVerify: 'Verificar DDC',
+                ddcEdition: 'Edición DDC',
+                autoDetect: 'Detección automática',
+                titleSubject: 'Título / Asunto',
+                practiceTitle: '🎲 Título de práctica',
+                suggestSubjects: '✨ Sugerir asuntos',
+                titlePlaceholder: 'ej: Una historia de la química en Alemania',
+                voiceInputTitle: 'Usar entrada de voz',
+                ddcNumberToVerify: 'Número DDC a verificar',
+                ddcPlaceholder: 'ej: 540.943',
+                instructionHint: 'Instrucción o Pista',
+                hintPlaceholder: 'ej: trabajo de investigación, centrarse en Pakistán',
+                generateDDCNumber: '✨ Generar número DDC',
+                verifyDDCNumber: '✔️ Verificar número DDC',
+                clear: 'Limpiar',
+                analyzing: 'Analizando...',
+                extractingText: 'Extrayendo texto de la imagen...',
+                fetchingLOD: 'Obteniendo datos de la biblioteca...',
+                debating: 'Debate de IA en curso...',
+                fetchingHistory: 'Obteniendo datos históricos...',
+                resultsAppearHere: 'Sus resultados de clasificación aparecerán aquí.',
+            },
+            zh: {
+                accessKeyTitle: '🔑 输入访问密钥',
+                accessKeySubtitle: '输入您的4位数访问代码以继续。',
+                rememberDevice: '记住此设备',
+                help: '帮助',
+                submit: '提交',
+                tooManyAttempts: '错误尝试次数过多。',
+                tryAgainIn: '请在{seconds}秒后重试。',
+                appTitle: '杜威大脑互动',
+                appSubtitle: '智能DDC分类助手',
+                author: '由 Muhammad Faizan Adnan 制作',
+                selectLanguageTitle: '选择语言',
+                toggleDarkModeTitle: '切换暗黑模式',
+                tabGenerate: '生成DDC',
+                tabVerify: '验证DDC',
+                ddcEdition: 'DDC版本',
+                autoDetect: '自动检测',
+                titleSubject: '标题/主题',
+                practiceTitle: '🎲 练习标题',
+                suggestSubjects: '✨ 建议主题',
+                titlePlaceholder: '例如，德国化学史',
+                voiceInputTitle: '使用语音输入',
+                ddcNumberToVerify: '要验证的DDC编号',
+                ddcPlaceholder: '例如，540.943',
+                instructionHint: '说明或提示',
+                hintPlaceholder: '例如，研究论文，关注巴基斯坦',
+                generateDDCNumber: '✨ 生成DDC编号',
+                verifyDDCNumber: '✔️ 验证DDC编号',
+                clear: '清除',
+                analyzing: '分析中...',
+                extractingText: '正在从图像中提取文本...',
+                fetchingLOD: '正在获取图书馆数据...',
+                debating: 'AI辩论进行中...',
+                fetchingHistory: '正在获取历史数据...',
+                resultsAppearHere: '您的分类结果将显示在此处。',
+            },
+        };
+
+        function translateUI(lang) {
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerHTML = translations[lang][key];
+                }
+            });
+             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[lang] && translations[lang][key]) {
+                    el.placeholder = translations[lang][key];
+                }
+            });
+             document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                const key = el.getAttribute('data-i18n-title');
+                if (translations[lang] && translations[lang][key]) {
+                    el.title = translations[lang][key];
+                }
+            });
+        }
+        
+        function setLanguage(lang) {
+            state.selectedLanguage = lang;
+            localStorage.setItem('selectedLanguage', lang);
+            document.documentElement.lang = lang;
+            const isRTL = lang === 'ur' || lang === 'ar';
+            document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
+            document.body.classList.add('lang-fade');
+            translateUI(lang);
+            setTimeout(() => document.body.classList.remove('lang-fade'), 400);
+            if (recognition) { recognition.lang = lang; }
+            switchMode(state.currentMode);
+        }
+
+        // --- API CALLS ---
+        async function makeApiCallWithRetry(payload, retries = 3, delay = 1000) {
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return await response.json();
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return makeApiCallWithRetry(payload, retries - 1, delay * 2);
+                } else {
+                    console.error("API call failed:", error);
+                    showError('Failed to get a response from the AI. Please try again later.');
+                    return null;
+                }
+            }
+        }
+
+        function getDebateClassification(title, hint, lang) {
+            const systemPrompt = `You are an expert DDC classification committee. For the given title, simulate a debate. First, have 2-3 members propose different, plausible DDC numbers. For each proposal, provide a brief justification. Next, write a 'Debate Analysis' comparing the pros and cons. Finally, conclude with a 'Final Decision', selecting the single best classification, explaining why it was chosen, and providing a final confidence score. Respond entirely in ${lang} in the specified JSON format.`;
+            const userQuery = `Debate the DDC classification for:\nTitle / Subject: "${title}"\nInstruction / Hint: "${hint}"`;
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "candidates": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": { "number": { "type": "STRING" }, "name": { "type": "STRING" }, "confidence": { "type": "NUMBER" }, "justification": { "type": "STRING" } },
+                            "required": ["number", "name", "confidence", "justification"]
+                        }
+                    },
+                    "debateAnalysis": { "type": "STRING" },
+                    "finalDecision": {
+                        "type": "OBJECT",
+                        "properties": { "number": { "type": "STRING" }, "name": { "type": "STRING" }, "confidence": { "type": "NUMBER" }, "finalRationale": { "type": "STRING" } },
+                        "required": ["number", "name", "confidence", "finalRationale"]
+                    }
+                },
+                "required": ["candidates", "debateAnalysis", "finalDecision"]
+            };
+            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+        
+        function getHistoricalEvolution(topic, lang) {
+            const systemPrompt = `You are a DDC historian. For the given topic, trace its classification number through DDC editions 19, 20, 21, 22, and 23. For each edition, provide the edition number, its publication year, the most likely DDC number, and a brief note on the change from the previous edition. If a number is unchanged, state that. Respond entirely in ${lang} in the specified JSON format.`;
+            const userQuery = `Trace the historical DDC evolution for the topic: "${topic}"`;
+            const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "history": {
+                        "type": "ARRAY",
+                        "items": {
+                            "type": "OBJECT",
+                            "properties": {
+                                "edition": {"type": "STRING"},
+                                "year": {"type": "NUMBER"},
+                                "number": {"type": "STRING"},
+                                "changeNote": {"type": "STRING"}
+                            },
+                            "required": ["edition", "year", "number", "changeNote"]
+                        }
+                    }
+                },
+                "required": ["history"]
+            };
+            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+
+        function verifyDDCClassification(title, hint, numberToVerify, lang) {
+            const systemPrompt = `You are an expert DDC cataloger. The user has provided a title/subject and a DDC number in ${lang}. Verify if the number is correct for the subject. If correct, confirm and explain. If incorrect, explain why and provide the correct DDC number with a full step-by-step rationale. Always state the DDC edition (e.g., 23rd) used for analysis. Respond ENTIRELY in ${lang}. Provide the output in the specified JSON format, translating all keys and values to ${lang}.`;
+            const userQuery = `Verify DDC classification:\nTitle / Subject: "${title}"\nProvided DDC Number: "${numberToVerify}"\nInstruction / Hint: "${hint}"`;
+            const responseSchema = {
+                type: "OBJECT", properties: { "isCorrect": { "type": "BOOLEAN" }, "verificationRationale": { "type": "STRING" }, "providedNumberAnalysis": { "type": "STRING" }, "correctNumber": { "type": "STRING" }, "correctNumberRationale": { "type": "STRING" }, "editionUsed": { "type": "STRING" }, "classificationHierarchy": { "type": "STRING" }, "buildSteps": { "type": "STRING" } }, required: ["isCorrect", "verificationRationale", "providedNumberAnalysis", "editionUsed", "classificationHierarchy"]
+            };
+            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+        
+        async function extractTextFromImage(base64ImageData, mimeType) {
+            const model = 'gemini-2.5-flash-preview-05-20';
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const prompt = `Analyze the book cover image. Extract the title, subtitle, and author. Respond with only a JSON object in the format: {"title": "...", "subtitle": "...", "author": "..."}. If a field is not found, use an empty string.`;
+
+            const payload = {
+              contents: [{ parts: [ { text: prompt }, { inlineData: { mimeType: mimeType, data: base64ImageData.split(',')[1] } } ] }],
+              generationConfig: {
+                  responseMimeType: "application/json",
+                  responseSchema: {
+                      type: "OBJECT",
+                      properties: { "title": { "type": "STRING" }, "subtitle": { "type": "STRING" }, "author": { "type": "STRING" } },
+                      required: ["title", "subtitle", "author"]
+                  }
+              }
+            };
+            return makeApiCallWithRetry(payload);
+        }
+
+
+        function getPracticeTitle(ddcClass = 'any', difficulty = 'any', lang = 'en') {
+            const systemPrompt = `You are a creative librarian who generates realistic, plausible book titles for cataloging practice. The titles should sound like real library materials. Generate only one title per request in the language '${lang}'. Do not add quotation marks or any extra text around the title.`;
+            let userQuery = `Generate a book title for DDC classification practice in ${lang}.`;
+            if (ddcClass !== 'any') {
+                userQuery += ` The title should fall within the DDC ${ddcClass} class.`;
+            }
+            if (difficulty !== 'any') {
+                userQuery += ` The classification difficulty for this title should be ${difficulty}. For example, an advanced title might involve multiple tables or complex subjects.`;
+            }
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+            return makeApiCallWithRetry(payload);
+        }
+        
+        function getContextualChatResponse(history, lang, lastResult) {
+            let systemPrompt = `You are a friendly, expert DDC librarian and a personal tutor. Your goal is to guide, explain, and motivate users. Maintain a conversational and context-aware dialogue. Respond in ${lang}.`;
+            if(lastResult) {
+                systemPrompt += `\n\nCRITICAL CONTEXT: The user's most recent classification result is available. If they ask "what about this?" or similar, they are referring to this result: ${JSON.stringify(lastResult)}. Use this context to answer their questions about the result, explain its components, or compare it to alternatives.`;
+            }
+
+            const payload = {
+                contents: history,
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+            return makeApiCallWithRetry(payload);
+        }
+
+
+        function getLivePracticeTitles(count, lang) {
+            const systemPrompt = `You are an AI generating a list of simple, beginner-friendly book titles for a DDC classification practice game. Create a JSON array of ${count} unique, easy-to-classify titles. The topics should be clear, single-subject, and cover all main DDC classes (000-900) evenly. Use titles like 'History of Pakistan', 'Introduction to Artificial Intelligence', 'Basics of Environmental Science', 'Islamic Architecture', 'History of Computers', 'Life of Allama Iqbal', 'Introduction to Psychology', 'Principles of Economics', 'World War II', 'Basic Chemistry', 'Geography of Asia'. The titles must be in ${lang}.`;
+            const userQuery = `Generate ${count} book titles for a DDC practice session in ${lang}. Example format: ["Title 1", "Title 2", ...]`;
+             const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "titles": {
+                        "type": "ARRAY",
+                        "items": { "type": "STRING" }
+                    }
+                },
+                 "required": ["titles"]
+            };
+            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+        
+        function getPracticeFeedback(title, userAnswer, lang) {
+            const systemPrompt = `You are a DDC classification expert and AI evaluator for a practice game. The user has submitted a DDC number for a given title. Your task is to:
+1.  Determine the most accurate DDC number for the title using the 23rd edition.
+2.  Compare the user's answer to the correct answer.
+3.  Evaluate if the user's answer is:
+    - "correct": An exact or functionally identical match. Award 10 points.
+    - "partial": Correct main class (first 3 digits) but incorrect subdivisions. Award 5 points.
+    - "incorrect": Wrong main class. Award 0 points.
+4.  Provide a concise, one-line explanation for the correct DDC number suitable for a beginner. For example: "954.91 (History of Pakistan under Asia)" or "006.3 (Artificial Intelligence under Computer Science)".
+5.  Respond ONLY with the specified JSON format, with all text in ${lang}.`;
+            const userQuery = `Title: "${title}"\nUser's DDC Answer: "${userAnswer}"`;
+             const responseSchema = {
+                type: "OBJECT",
+                properties: {
+                    "correctAnswer": { "type": "STRING" },
+                    "evaluation": { "type": "STRING", "enum": ["correct", "partial", "incorrect"] },
+                    "explanation": { "type": "STRING" },
+                    "score": { "type": "NUMBER" }
+                },
+                "required": ["correctAnswer", "evaluation", "explanation", "score"]
+            };
+             const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+        
+        function getPracticeHint(title, lang) {
+            const systemPrompt = `You are a helpful DDC classification assistant. For the given title, identify the main DDC class (e.g., 000s, 100s, 500s) and its general subject. Provide a simple, one-sentence hint for a beginner. Respond ONLY with a JSON object containing the hint. All text must be in ${lang}. Example: 'This title belongs to the subject of History, which falls under class 900.'`;
+            const userQuery = `Provide a beginner hint for the title: "${title}"`;
+            const responseSchema = {
+                type: "OBJECT",
+                properties: { "hint": { "type": "STRING" } },
+                "required": ["hint"]
+            };
+            const payload = { contents: [{ parts: [{ text: userQuery }] }], systemInstruction: { parts: [{ text: systemPrompt }] }, generationConfig: { responseMimeType: "application/json", responseSchema: responseSchema } };
+            return makeApiCallWithRetry(payload);
+        }
+
+        async function getPracticeReportAnalysis(incorrectQuestions, lang) {
+            const systemPrompt = `You are a DDC tutor analyzing a student's incorrect answers from a practice session. Your goal is to identify patterns in their mistakes and provide constructive, encouraging feedback in ${lang}. Do not just list the errors. Summarize the key areas for improvement in 2-3 sentences. For example, mention if they struggle with specific tables, confuse main classes, or have issues with geographic subdivisions.`;
+            
+            const questionsSummary = incorrectQuestions.map(q => 
+                `- Title: "${q.title}", User's Answer: "${q.userAnswer}", Correct Answer: "${q.correctAnswer}"`
+            ).join('\n');
+            
+            const userQuery = `Here are the student's incorrect answers:\n${questionsSummary}\n\nPlease provide a summary of their performance with suggestions for improvement.`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+            
+            const result = await makeApiCallWithRetry(payload);
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                return result.candidates[0].content.parts[0].text;
+            } else {
+                return "Could not generate analysis at this time.";
+            }
+        }
+
+        // --- LINKED DATA (LOD) ---
+        async function fetchLinkedData(title) {
+            const cacheKey = title.toLowerCase().trim();
+            if (state.lodCache[cacheKey]) {
+                return state.lodCache[cacheKey];
+            }
+            const encodedTitle = encodeURIComponent(title);
+            const url = `https://openlibrary.org/search.json?title=${encodedTitle}&fields=key,title,author_name,first_publish_year,dewey_decimal_class,cover_i,seed`;
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                const records = data.docs
+                    .filter(doc => doc.dewey_decimal_class && doc.dewey_decimal_class.length > 0)
+                    .map(doc => ({
+                        title: doc.title,
+                        author: doc.author_name ? doc.author_name.join(', ') : 'N/A',
+                        year: doc.first_publish_year || 'N/A',
+                        ddc: doc.dewey_decimal_class[0], // Take the first DDC for simplicity
+                        source: 'Open Library',
+                        link: `https://openlibrary.org${doc.key}`,
+                        rawData: doc,
+                    })).slice(0, 10); // Limit to 10 results
+                
+                const result = { success: true, data: records };
+                state.lodCache[cacheKey] = result;
+                sessionStorage.setItem('lodCache', JSON.stringify(state.lodCache));
+                return result;
+
+            } catch (error) {
+                console.error("Linked Data fetch failed:", error);
+                return { success: false, error: 'Failed to fetch data from Open Library. Please check your network connection.' };
+            }
+        }
+        
+        function displayLinkedDataResults(records) {
+            dom.outputContainer.classList.add('hidden');
+            dom.debateOutputContainer.classList.add('hidden');
+            dom.lodOutputContainer.classList.remove('hidden');
+
+            const ddcCounts = records.reduce((acc, record) => {
+                const ddc = record.ddc.split('.')[0]; // Use main class for recommendation
+                acc[ddc] = (acc[ddc] || 0) + 1;
+                return acc;
+            }, {});
+
+            const recommendedDDC = Object.keys(ddcCounts).length > 0 ? Object.keys(ddcCounts).reduce((a, b) => ddcCounts[a] > ddcCounts[b] ? a : b) : null;
+            
+            let html = `<h3 class="font-bold text-lg mb-2">📚 Found ${records.length} Records in Open Library</h3>`;
+            html += records.map((rec, index) => {
+                const isRecommended = recommendedDDC && rec.ddc.startsWith(recommendedDDC);
+                return `
+                    <div class="lod-result-card p-3 rounded-lg ${isRecommended ? 'recommended' : ''}">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <p class="font-semibold">${rec.title}</p>
+                                <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">${rec.author} (${rec.year})</p>
+                            </div>
+                             <div class="text-right flex-shrink-0 ml-4">
+                                <p class="font-mono text-xl font-bold text-[--primary] dark:text-[--accent]">${rec.ddc}</p>
+                                ${isRecommended ? '<p class="text-xs font-semibold text-[--success]">✅ Recommended</p>' : ''}
+                            </div>
+                        </div>
+                         <div class="flex items-center justify-between text-xs mt-2">
+                             <div class="flex items-center" title="Source: ${rec.source}">
+                                <img src="https://openlibrary.org/static/images/openlibrary-logo-tighter.svg" alt="Open Library" class="w-4 h-4 mr-1">
+                                <span>${rec.source}</span>
+                            </div>
+                             <div>
+                                <button class="view-linked-data-btn text-[--secondary] hover:underline" data-index="${index}">View Linked Data</button>
+                                <a href="${rec.link}" target="_blank" class="ml-2 text-[--secondary] hover:underline">View Record ↗</a>
+                            </div>
+                        </div>
+                        <div class="linked-data-view bg-black/5 dark:bg-white/5 mt-2 rounded">
+                            <pre class="text-xs p-2 overflow-x-auto"><code>${JSON.stringify(rec.rawData, null, 2)}</code></pre>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            dom.lodOutputContainer.innerHTML = html;
+        }
+
+        // --- UI & DISPLAY FUNCTIONS ---
+        function showError(message) {
+            dom.resultsWrapper.classList.remove('hidden');
+            dom.outputContainer.classList.add('hidden');
+            dom.lodOutputContainer.classList.add('hidden');
+            dom.debateOutputContainer.classList.add('hidden');
+            dom.errorMessageEl.textContent = message;
+            dom.errorMessageEl.classList.remove('hidden');
+        }
+
+        function setUILoading(isLoading, messageKey = 'analyzing') {
+            dom.mainActionBtn.disabled = isLoading;
+            if (isLoading) {
+                dom.loaderText.textContent = translations[state.selectedLanguage][messageKey] || 'Loading...';
+                dom.loaderContainer.classList.remove('hidden');
+                dom.loaderContainer.classList.add('flex');
+                dom.outputContainer.classList.add('hidden');
+                dom.lodOutputContainer.classList.add('hidden');
+                dom.debateOutputContainer.classList.add('hidden');
+                dom.errorMessageEl.classList.add('hidden');
+            } else {
+                dom.loaderContainer.classList.add('hidden');
+                dom.loaderContainer.classList.remove('flex');
+                switchMode(state.currentMode); // Reset button text
+            }
+        }
+        
+        function displayDebateResults(data, title) {
+            dom.outputContainer.classList.add('hidden');
+            dom.lodOutputContainer.classList.add('hidden');
+            dom.debateOutputContainer.classList.remove('hidden');
+            
+            const debateDetailsHidden = state.showDebateDetails ? '' : 'hidden';
+
+            let candidatesHtml = data.candidates.map(candidate => `
+                <div class="debate-card alternative p-4 rounded-lg step-animation">
+                    <p class="font-bold text-lg font-mono text-[--primary] dark:text-[--accent]">${candidate.number} — ${candidate.name}</p>
+                    <p class="text-sm mt-1">🧠 <strong>Reason:</strong> ${candidate.justification}</p>
+                </div>
+            `).join('');
+
+            let html = `
+                <div class="step-animation">
+                    <h3 class="font-bold text-lg mb-2">✅ Final Decision:</h3>
+                    <div class="debate-card best p-4 rounded-lg">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="font-bold text-xl font-mono text-[--success]">${data.finalDecision.number} — ${data.finalDecision.name}</p>
+                            </div>
+                            <button id="historical-evolution-btn" data-topic="${title}" class="text-xs bg-blue-500/10 text-blue-500 font-semibold py-1 px-3 rounded-full hover:bg-blue-500/20">📜 View History</button>
+                        </div>
+                        <div class="w-full bg-black/10 dark:bg-white/10 rounded-full h-2.5 my-2"><div class="bg-[--success] h-2.5 rounded-full" style="width: ${data.finalDecision.confidence}%"></div></div>
+                        <p class="text-sm mt-1"><strong>Final Rationale:</strong> ${data.finalDecision.finalRationale}</p>
+                    </div>
+                </div>
+
+                <div id="debate-details-wrapper" class="${debateDetailsHidden}">
+                    <div class="flex justify-between items-start mb-2 mt-6">
+                        <h3 class="font-bold text-lg">Debate & Alternatives:</h3>
+                    </div>
+                    ${candidatesHtml}
+                    <div class="step-animation" style="animation-delay: ${data.candidates.length * 100}ms">
+                        <h3 class="font-bold text-lg mt-4 mb-2">⚖️ Debate Analysis:</h3>
+                        <p class="text-sm p-4 bg-black/5 dark:bg-white/5 rounded-lg">${data.debateAnalysis}</p>
+                    </div>
+                </div>
+            `;
+
+            dom.debateOutputContainer.innerHTML = html;
+        }
+        
+        function displayVerificationResults(title, hint, numberToVerify, data) {
+            const isCorrect = data.isCorrect;
+            const resultColorVar = isCorrect ? '--success' : '--error';
+            const resultText = isCorrect ? 'Correct' : 'Incorrect';
+            
+            let correctionHtml = '';
+            if (!isCorrect) {
+                 correctionHtml = `
+                    <div class="mt-4 bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg step-animation" style="animation-delay: 0.3s;">
+                        <h3 class="font-semibold text-[--text-light] dark:text-[--text-dark]">Suggested Correction</h3>
+                        <p class="mt-2"><strong class="font-semibold">Correct DDC number:</strong> <span class="font-mono text-lg text-[--secondary] dark:text-[--accent]">${data.correctNumber}</span></p>
+                        <p class="mt-2 text-sm"><strong class="font-semibold">Rationale:</strong> <span>${data.correctNumberRationale || 'N/A'}</span></p>
+                        <p class="mt-2 text-sm"><strong class="font-semibold">Hierarchy:</strong> <span>${data.classificationHierarchy}</span></p>
+                        <p class="mt-2 text-sm"><strong class="font-semibold">Build Steps:</strong> <span>${data.buildSteps}</span></p>
+                    </div>`;
+            }
+
+            dom.outputContainer.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                         <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted]">${data.editionUsed}</p>
+                        <p><strong class="font-semibold">Verifying:</strong> <span class="font-mono text-xl font-bold text-[--primary] dark:text-[--accent]">${numberToVerify}</span></p>
+                        <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted]">For: ${title}</p>
+                    </div>
+                     <button id="export-report-btn" class="text-xs bg-green-500/10 text-[--success] font-semibold py-1 px-3 rounded-full hover:bg-green-500/20">📄 Export</button>
+                </div>
+                <div class="bg-[${resultColorVar}]/10 border border-[${resultColorVar}]/20 p-4 rounded-lg step-animation">
+                    <p><strong class="font-semibold">Verification Result:</strong> <span class="font-bold text-[${resultColorVar}]">${resultText}</span></p>
+                    <p class="mt-2 text-sm"><strong class="font-semibold">Rationale:</strong> <span>${data.verificationRationale}</span></p>
+                     <p class="mt-2 text-sm"><strong class="font-semibold">Analysis of Provided Number:</strong> <span>${data.providedNumberAnalysis}</span></p>
+                </div>
+                ${correctionHtml}
+                <div class="mt-4 text-center"><button id="feedback-good" class="p-1 opacity-50 hover:opacity-100">👍</button><button id="feedback-bad" class="p-1 opacity-50 hover:opacity-100">👎</button></div>
+            `;
+        }
+
+        // --- EVENT HANDLERS & LOGIC ---
+        function switchMode(mode) {
+            state.currentMode = mode;
+            dom.tabGenerate.classList.toggle('active-tab', mode === 'generate');
+            dom.tabVerify.classList.toggle('active-tab', mode === 'verify');
+            dom.verifySection.classList.toggle('hidden', mode === 'generate');
+            dom.mainActionBtn.innerHTML = mode === 'generate' 
+                ? `✨ ${translations[state.selectedLanguage].generateDDCNumber || 'Generate DDC Number'}`
+                : `✔️ ${translations[state.selectedLanguage].verifyDDCNumber || 'Verify DDC Number'}`;
+            updateTabStyles();
+        }
+
+        function updateTabStyles() {
+            const isDark = document.documentElement.classList.contains('dark');
+            document.querySelectorAll('.tab-btn, .edition-btn').forEach(btn => {
+                const isActive = btn.classList.contains('active-tab') || btn.dataset.edition === state.selectedEdition;
+                btn.style.backgroundColor = isActive ? 'var(--primary)' : 'transparent';
+                btn.style.color = isActive ? 'white' : (isDark ? 'var(--text-dark-muted)' : 'var(--text-light-muted)');
+            });
+        }
+        
+        async function handleMainAction() {
+            let title = dom.titleInput.value.trim();
+            if (!title) {
+                const detectedText = dom.detectedTextInput.value.trim();
+                if(detectedText) {
+                    title = detectedText.split('\n')[0];
+                    dom.titleInput.value = title;
+                } else {
+                    showError('Please enter a Title or Subject, or upload a book cover.'); 
+                    return; 
+                }
+            }
+
+            clearAll(true); 
+
+            if (state.currentMode === 'verify') {
+                await verifyWithAI(title);
+                return;
+            }
+
+            // --- GENERATE MODE (AI Debate is now default) ---
+            if (state.useLinkedData) {
+                setUILoading(true, 'fetchingLOD');
+                const lodResult = await fetchLinkedData(title);
+                
+                if (lodResult.success && lodResult.data && lodResult.data.length > 0) {
+                    displayLinkedDataResults(lodResult.data);
+                    setUILoading(false);
+                } else {
+                    if (lodResult.error) showError(lodResult.error);
+                    dom.lodOutputContainer.innerHTML = `<p class="text-center text-sm text-[--text-light-muted] dark:text-[--text-dark-muted] p-4">No existing catalog record found. Proceeding with AI Debate.</p>`;
+                    dom.lodOutputContainer.classList.remove('hidden');
+                    await debateWithAI(title); // Fallback to debate
+                }
+            } else {
+                 await debateWithAI(title); // Default to debate
+            }
+        }
+
+        async function debateWithAI(title) {
+            const hint = dom.hintInput.value.trim();
+            setUILoading(true, 'debating');
+
+            let editionHint = `Use DDC ${state.selectedEdition}.`;
+            if (state.selectedEdition === 'auto') { editionHint = 'Use the most appropriate DDC edition (21st or 23rd) for the subject.'; }
+            const fullHint = `${hint}`.trim();
+
+            const result = await getDebateClassification(title, fullHint, state.selectedLanguage);
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                try {
+                    const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                    state.lastResultData = { ...parsedData, title, hint, mode: 'debate', timestamp: new Date() };
+                    saveToHistory(state.lastResultData);
+                    displayDebateResults(parsedData, title);
+                } catch (e) {
+                     console.error("JSON Parse Error:", e);
+                    console.log("Raw AI Response:", result.candidates[0].content.parts[0].text);
+                    showError('Received an invalid response from the AI for the debate.');
+                }
+            }
+            setUILoading(false);
+        }
+
+        async function verifyWithAI(title) {
+             const hint = dom.hintInput.value.trim();
+             const numberToVerify = dom.ddcInput.value.trim();
+             if (!numberToVerify) { showError('Please enter a DDC number to verify.'); return; }
+            
+             setUILoading(true, 'analyzing');
+
+             let editionHint = `Use DDC ${state.selectedEdition}.`;
+             if (state.selectedEdition === 'auto') { editionHint = 'Use the most appropriate DDC edition (21st or 23rd) for the subject.'; }
+             const fullHint = `${hint}`.trim();
+
+             const result = await verifyDDCClassification(title, fullHint, numberToVerify, state.selectedLanguage);
+             if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                 try {
+                     const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                     state.lastResultData = { ...parsedData, title, hint, numberToVerify, mode: 'verify', timestamp: new Date() };
+                     saveToHistory(state.lastResultData);
+                     dom.outputContainer.classList.remove('hidden');
+                     displayVerificationResults(title, hint, numberToVerify, parsedData);
+                 } catch (e) {
+                     showError('Received an invalid response from the AI.');
+                 }
+             }
+             setUILoading(false);
+        }
+
+        function saveToHistory(data) {
+            state.history.unshift(data);
+            if (state.history.length > 10) state.history.pop();
+            localStorage.setItem('ddcHistory', JSON.stringify(state.history));
+        }
+
+        function clearAll(keepInputs = false) {
+            if (!keepInputs) {
+                dom.titleInput.value = '';
+                dom.hintInput.value = '';
+                dom.ddcInput.value = '';
+                dom.detectedTextInput.value = '';
+            }
+             // Clear image preview
+            dom.imageUploadPrompt.classList.remove('hidden');
+            dom.imagePreviewContainer.classList.add('hidden');
+            dom.imagePreviewContainer.innerHTML = '';
+            dom.imageAnalysisContainer.classList.add('hidden');
+
+            dom.outputContainer.innerHTML = `<div class="text-center text-gray-400 dark:text-gray-500 h-full flex flex-col justify-center items-center"><svg class="w-16 h-16 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 6h16M4 12h16M4 18h7"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M14 5l7 7-7 7"></path></svg><p data-i18n="resultsAppearHere">${translations[state.selectedLanguage].resultsAppearHere}</p></div>`;
+            dom.outputContainer.classList.remove('hidden');
+            dom.lodOutputContainer.innerHTML = '';
+            dom.lodOutputContainer.classList.add('hidden');
+            dom.debateOutputContainer.innerHTML = '';
+            dom.debateOutputContainer.classList.add('hidden');
+            dom.errorMessageEl.classList.add('hidden');
+        }
+
+        function handleThemeToggle() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('theme-icon-light').classList.toggle('hidden', isDark);
+            document.getElementById('theme-icon-dark').classList.toggle('hidden', !isDark);
+            updateTabStyles();
+            if (state.animation.enabled) {
+                initParticles();
+            }
+        }
+        
+        function handleAdvancedToggle(isOpen) {
+            state.advancedOptionsOpen = isOpen;
+            localStorage.setItem('advancedOptionsOpen', isOpen);
+            dom.advancedOptionsToggle.classList.toggle('open', isOpen);
+            dom.advancedOptionsContent.classList.toggle('open', isOpen);
+        }
+
+        function showHistory() {
+            let content = state.history.map(item => {
+                let number = item.finalDDCNumber || (item.finalDecision && item.finalDecision.number) || item.correctNumber || item.numberToVerify || 'N/A';
+                return `
+                <div class="p-3 border-b border-[--border-light] dark:border-[--border-dark]">
+                    <p class="font-semibold">${item.title}</p>
+                    <p class="text-sm font-mono text-[--secondary]">${number}</p>
+                    <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted]">${new Date(item.timestamp).toLocaleString()}</p>
+                </div>`
+            }).join('');
+            if (!content) content = `<p>No history yet.</p>`;
+
+            dom.historyModal.querySelector('.modal-content').innerHTML = `
+                <span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('history-modal').classList.remove('flex')">&times;</span>
+                <h2 class="text-2xl font-bold mb-4">Classification History</h2>
+                <div class="max-h-[60vh] overflow-y-auto">${content}</div>
+            `;
+            dom.historyModal.classList.add('flex');
+        }
+        
+        function renderChatHistory() {
+            const chatHistoryEl = document.getElementById('chat-history');
+            if (!chatHistoryEl) return;
+            chatHistoryEl.innerHTML = state.chatHistory.map(message => {
+                const textContent = message.parts[0].text.replace(/\n/g, '<br>');
+                if (message.role === 'user') {
+                    return `<div class="text-right my-2"><span class="bg-[--primary] text-white px-3 py-2 rounded-lg inline-block max-w-[80%] text-left">${textContent}</span></div>`;
+                } else { // model
+                    return `<div class="text-left my-2"><span class="bg-black/5 dark:bg-white/5 px-3 py-2 rounded-lg inline-block max-w-[80%]">${textContent}</span></div>`;
+                }
+            }).join('');
+            chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+        }
+
+        async function handleChatSubmit(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            // Add user message to history and render
+            state.chatHistory.push({ role: "user", parts: [{ text: query }] });
+            renderChatHistory();
+            input.value = '';
+
+            const chatHistoryEl = document.getElementById('chat-history');
+            // Add a temporary loading bubble
+            const loadingBubble = document.createElement('div');
+            loadingBubble.className = 'text-left my-2';
+            loadingBubble.innerHTML = `<span class="bg-black/5 dark:bg-white/5 px-3 py-1 rounded-lg inline-block"><div class="loader !w-4 !h-4 !border-2 inline-block"></div></span>`;
+            chatHistoryEl.appendChild(loadingBubble);
+            chatHistoryEl.scrollTop = chatHistoryEl.scrollHeight;
+
+            const response = await getContextualChatResponse(state.chatHistory, state.selectedLanguage, state.lastResultData);
+            
+            // Remove loading bubble
+            chatHistoryEl.removeChild(loadingBubble);
+
+            if (response && response.candidates?.[0]?.content?.parts?.[0]?.text) {
+                const text = response.candidates[0].content.parts[0].text;
+                state.chatHistory.push({ role: "model", parts: [{ text: text }] });
+            } else {
+                state.chatHistory.push({ role: "model", parts: [{ text: "Sorry, I encountered an error. Please try again." }] });
+            }
+            renderChatHistory();
+        }
+
+        function showPracticeTitleGenerator() {
+            const modalContent = dom.practiceTitleModal.querySelector('.modal-content');
+            modalContent.innerHTML = `
+                <span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('practice-title-modal').classList.remove('flex')">&times;</span>
+                <h2 class="text-2xl font-bold mb-4">Practice Title Generator</h2>
+                <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted] mb-6">Generate random titles to test your classification skills.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label for="practice-class" class="block text-sm font-medium mb-1">Main DDC Class</label>
+                        <select id="practice-class" class="block w-full px-3 py-2 bg-black/5 dark:bg-white/5 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent]">
+                            <option value="any">Any Class</option>
+                            <option value="000s">000s - Generalities</option><option value="100s">100s - Philosophy & Psychology</option><option value="200s">200s - Religion</option><option value="300s">300s - Social Sciences</option><option value="400s">400s - Language</option><option value="500s">500s - Science</option><option value="600s">600s - Technology</option><option value="700s">700s - Arts & Recreation</option><option value="800s">800s - Literature</option><option value="900s">900s - History & Geography</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="practice-difficulty" class="block text-sm font-medium mb-1">Difficulty</label>
+                        <select id="practice-difficulty" class="block w-full px-3 py-2 bg-black/5 dark:bg-white/5 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent]">
+                            <option value="any">Any Difficulty</option><option value="Basic">Basic</option><option value="Intermediate">Intermediate</option><option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="practice-count" class="block text-sm font-medium mb-1">Number of Titles</label>
+                        <select id="practice-count" class="block w-full px-3 py-2 bg-black/5 dark:bg-white/5 border border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent]">
+                            <option value="1">1 Title</option><option value="3">3 Titles</option><option value="5">5 Titles</option>
+                        </select>
+                    </div>
+                </div>
+                <button id="generate-title-now-btn" class="w-full interactive-btn">Generate Title(s)</button>
+                <div id="practice-title-loader" class="hidden text-center mt-4"></div><div id="practice-title-results" class="mt-4"></div>
+            `;
+            dom.practiceTitleModal.classList.add('flex');
+            document.getElementById('generate-title-now-btn').addEventListener('click', handleGeneratePracticeTitle);
+        }
+
+        function showReference() {
+            const modalContent = dom.referenceModal.querySelector('.modal-content');
+            modalContent.innerHTML = `<span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('reference-modal').classList.remove('flex')">&times;</span><h2 class="text-2xl font-bold mb-4">DDC Reference Explorer</h2><div class="text-sm max-h-[70vh] overflow-y-auto pr-4"><h3 class="text-lg font-semibold mt-4 mb-2">The Ten Main Classes</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2"><div><b>000</b> Computer science, info & general works</div><div><b>100</b> Philosophy & psychology</div><div><b>200</b> Religion</div><div><b>300</b> Social sciences</div><div><b>400</b> Language</div><div><b>500</b> Science</div><div><b>600</b> Technology</div><div><b>700</b> Arts & recreation</div><div><b>800</b> Literature</div><div><b>900</b> History & geography</div></div><h3 class="text-lg font-semibold mt-6 mb-2">Overview of DDC Tables</h3><ul class="list-disc list-inside space-y-2"><li><b>Table 1: Standard Subdivisions.</b> (e.g., <b>-03</b> for Dictionaries).</li><li><b>Table 2: Geographic Areas...</b> (e.g., <b>-43</b> for Germany).</li><li><b>Table 3: Subdivisions for the Arts...</b> (e.g., <b>-1</b> for Poetry).</li><li><b>Table 4: Subdivisions of Individual Languages...</b> (e.g., <b>-3</b> for Dictionaries).</li><li><b>Table 5: Ethnic and National Groups.</b></li><li><b>Table 6: Languages.</b></li></ul></div>`;
+            dom.referenceModal.classList.add('flex');
+        }
+
+        function showChat() {
+            state.chatHistory = [{ role: "model", parts: [{ text: "Hello! As an advanced AI assistant, I can help you with DDC concepts, suggest classifications, and analyze your progress. How can I assist you today?" }] }];
+
+            dom.aiChatModal.querySelector('.modal-content').innerHTML = `
+                <span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('ai-chat-modal').classList.remove('flex')">&times;</span>
+                <h2 class="text-2xl font-bold mb-4">Context-Aware AI Assistant</h2>
+                <div id="chat-history" class="h-64 overflow-y-auto border border-[--border-light] dark:border-[--border-dark] rounded-lg p-3 mb-3">
+                    <!-- Chat history will be rendered here -->
+                </div>
+                <form id="chat-form" class="flex items-center">
+                    <input id="chat-input" type="text" class="flex-grow px-3 py-2 bg-black/5 dark:bg-white/5 border border-[--border-light] dark:border-[--border-dark] rounded-l-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent]" placeholder="Ask about DDC or your last result...">
+                    <button id="chat-voice-btn" type="button" title="Use Voice Input" class="p-2 border-y border-l-0 border-[--border-light] dark:border-[--border-dark] bg-black/5 dark:bg-white/5 text-[--text-light-muted] dark:text-[--text-dark-muted] hover:bg-black/10">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                    </button>
+                    <button type="submit" class="bg-[--primary] text-white font-semibold px-4 py-3 rounded-r-lg">Send</button>
+                </form>
+            `;
+            
+            renderChatHistory();
+            dom.aiChatModal.classList.add('flex');
+            document.getElementById('chat-form').addEventListener('submit', handleChatSubmit);
+            document.getElementById('chat-voice-btn').addEventListener('click', () => {
+                if (recognition) {
+                    recognition.start();
+                    recognition.onresult = (event) => { document.getElementById('chat-input').value = event.results[0][0].transcript; };
+                } else {
+                    alert('Voice recognition is not supported in your browser.');
+                }
+            });
+        }
+
+        async function handleGeneratePracticeTitle() {
+            const ddcClass = document.getElementById('practice-class').value;
+            const difficulty = document.getElementById('practice-difficulty').value;
+            const count = parseInt(document.getElementById('practice-count').value, 10);
+            const loader = document.getElementById('practice-title-loader');
+            const btn = document.getElementById('generate-title-now-btn');
+            const resultsContainer = document.getElementById('practice-title-results');
+            resultsContainer.innerHTML = '';
+            loader.textContent = `Generating ${count} title(s)...`;
+            loader.classList.remove('hidden');
+            btn.disabled = true;
+
+            const promises = Array.from({ length: count }, () => getPracticeTitle(ddcClass, difficulty, state.selectedLanguage));
+
+            try {
+                const results = await Promise.all(promises);
+                const titles = results.map(result => result && result.candidates?.[0]?.content?.parts?.[0]?.text.trim().replace(/^"|"$/g, '')).filter(Boolean);
+                if (titles.length > 0) {
+                    if (count === 1 && titles.length === 1) { dom.titleInput.value = titles[0]; dom.practiceTitleModal.classList.remove('flex'); } 
+                    else {
+                        resultsContainer.innerHTML = `<h3 class="font-semibold mt-6 mb-2">Generated Titles (Click to use)</h3><div class="space-y-2 max-h-40 overflow-y-auto p-1">${titles.map(title => `<button class="w-full text-left p-2 bg-black/5 dark:bg-white/10 rounded hover:bg-black/10 dark:hover:bg-white/20 transition practice-title-option">${title}</button>`).join('')}</div>`;
+                        document.querySelectorAll('.practice-title-option').forEach(button => button.addEventListener('click', () => { dom.titleInput.value = button.textContent; dom.practiceTitleModal.classList.remove('flex'); }));
+                    }
+                } else { resultsContainer.innerHTML = `<p class="text-[--error] mt-4">Failed to generate titles. Please try again.</p>`; }
+            } catch (error) { resultsContainer.innerHTML = `<p class="text-[--error] mt-4">An error occurred. Please try again.</p>`;
+            } finally { loader.classList.add('hidden'); btn.disabled = false; }
+        }
+        
+        // --- ACCESS GATE LOGIC ---
+        const accessKey = '5491';
+        const maxAttempts = 5;
+        const lockoutDuration = 15 * 1000;
+
+        function grantAccess() {
+            dom.accessGate.classList.add('hidden');
+            dom.mainApp.classList.remove('hidden');
+            dom.mainApp.classList.add('gate-animation');
+            initMainApp();
+        }
+
+        function handleAccessKeyValidation() {
+            let currentCode = Array.from(dom.accessCodeInputs).map(input => input.value).join('');
+            if (currentCode === accessKey) {
+                dom.accessError.textContent = '';
+                sessionStorage.removeItem('accessAttempts');
+                if (dom.rememberDeviceCheck.checked) {
+                    const expiry = new Date().getTime() + (30 * 24 * 60 * 60 * 1000);
+                    localStorage.setItem('deviceRememberedUntil', expiry);
+                }
+                grantAccess();
+            } else {
+                let attempts = parseInt(sessionStorage.getItem('accessAttempts') || 0) + 1;
+                sessionStorage.setItem('accessAttempts', attempts);
+                dom.accessCodeInputs.forEach(input => input.value = '');
+                dom.accessCodeInputs[0].focus();
+                if (attempts >= maxAttempts) {
+                    const lockoutEnd = new Date().getTime() + lockoutDuration;
+                    sessionStorage.setItem('accessLockoutEnd', lockoutEnd);
+                    startLockout();
+                } else {
+                    dom.accessError.textContent = `Incorrect code. ${maxAttempts - attempts} attempts remaining.`;
+                }
+            }
+        }
+        
+        function startLockout() {
+            dom.accessForm.classList.add('hidden');
+            dom.lockoutContainer.classList.remove('hidden');
+            const lockoutEnd = parseInt(sessionStorage.getItem('accessLockoutEnd'));
+            const timerInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const timeLeft = Math.ceil((lockoutEnd - now) / 1000);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    sessionStorage.removeItem('accessLockoutEnd');
+                    sessionStorage.removeItem('accessAttempts');
+                    dom.accessForm.classList.remove('hidden');
+                    dom.lockoutContainer.classList.add('hidden');
+                    dom.accessError.textContent = '';
+                } else {
+                    const timeText = translations[state.selectedLanguage].tryAgainIn.replace('{seconds}', timeLeft);
+                    dom.lockoutContainer.querySelector('p:last-child').innerHTML = timeText;
+                }
+            }, 1000);
+        }
+        
+       // --- LIVE PRACTICE MODE 2.0 ---
+        async function startLivePractice() {
+            state.practiceMode = { isActive: true, questions: [], currentQuestionIndex: 0, score: 0, timer: null, startTime: new Date(), questionStartTime: null };
+            dom.livePracticeModal.classList.add('flex');
+            const modalContent = dom.livePracticeModal.querySelector('.modal-content');
+            modalContent.innerHTML = `<div class="h-64 flex items-center justify-center"><div class="loader"></div><p class="ml-4">Preparing your practice session...</p></div>`;
+            
+            const result = await getLivePracticeTitles(10, state.selectedLanguage);
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                if (parsedData.titles && parsedData.titles.length > 0) {
+                    state.practiceMode.questions = parsedData.titles.map(title => ({ title, userAnswer: '', correctAnswer: '', explanation: '', score: 0, timeTaken: 0, result: null }));
+                    displayPracticeQuestion();
+                } else {
+                    modalContent.innerHTML = `<p class="text-center text-[--error]">Failed to generate practice titles.</p>`;
+                }
+            } else {
+                modalContent.innerHTML = `<p class="text-center text-[--error]">Could not fetch practice titles from AI.</p>`;
+            }
+        }
+
+        function displayPracticeQuestion() {
+            clearInterval(state.practiceMode.timer);
+            const practice = state.practiceMode;
+            const q = practice.questions[practice.currentQuestionIndex];
+            state.practiceMode.questionStartTime = Date.now();
+            
+            const modalContent = dom.livePracticeModal.querySelector('.modal-content');
+            modalContent.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold">Live Practice Mode 2.0</h2>
+                        <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">Question ${practice.currentQuestionIndex + 1} of ${practice.questions.length}</p>
+                    </div>
+                    <div class="text-right">
+                         <p class="font-semibold">Score: <span id="live-practice-score" class="text-xl text-[--primary] dark:text-[--accent]">${practice.score}</span></p>
+                        <p id="live-practice-timer" class="font-mono text-lg">3:00</p>
+                    </div>
+                </div>
+                <div class="w-full bg-black/10 dark:bg-white/10 rounded-full h-2 mb-6"><div id="live-practice-timer-bar" class="bg-[--accent] h-2 rounded-full" style="width: 100%;"></div></div>
+                
+                <div class="text-center mb-4">
+                    <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">Classify this title:</p>
+                    <p class="text-xl font-semibold my-2">${q.title}</p>
+                </div>
+
+                <div class="relative mb-4">
+                     <input type="text" id="live-practice-input" class="block w-full text-center text-xl font-mono px-4 py-3 bg-white/50 dark:bg-black/20 border-2 border-[--border-light] dark:border-[--border-dark] rounded-lg focus:ring-2 focus:ring-[--accent] focus:border-[--accent]" placeholder="Enter DDC Number">
+                </div>
+                 <div id="live-practice-feedback" class="min-h-[100px] mt-4"></div>
+                <div class="flex justify-between items-center mt-6">
+                    <button id="live-practice-quit-btn" class="text-sm text-[--error] hover:underline">Quit Practice</button>
+                    <div class="flex space-x-2">
+                        <button id="live-practice-hint-btn" class="interactive-btn-warning">💡 Hint (-1 pt)</button>
+                        <button id="live-practice-submit-btn" class="interactive-btn py-2 px-6">Submit</button>
+                        <button id="live-practice-next-btn" class="hidden interactive-btn-success py-2 px-6">Next Question &rarr;</button>
+                    </div>
+                </div>
+            `;
+            
+            // Timer logic
+            let timeLeft = 180; // 3 minutes
+            const timerEl = document.getElementById('live-practice-timer');
+            const timerBarEl = document.getElementById('live-practice-timer-bar');
+            state.practiceMode.timer = setInterval(() => {
+                timeLeft--;
+                timerEl.textContent = `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
+                timerBarEl.style.width = `${(timeLeft / 180) * 100}%`;
+                if (timeLeft <= 0) { handlePracticeSubmit(); }
+            }, 1000);
+            
+            // Event Listeners
+            document.getElementById('live-practice-submit-btn').addEventListener('click', handlePracticeSubmit);
+            document.getElementById('live-practice-next-btn').addEventListener('click', handleNextPracticeQuestion);
+            document.getElementById('live-practice-quit-btn').addEventListener('click', showPracticeReport);
+            document.getElementById('live-practice-hint-btn').addEventListener('click', handlePracticeHint);
+        }
+        
+        async function handlePracticeHint() {
+            const hintBtn = document.getElementById('live-practice-hint-btn');
+            const feedbackEl = document.getElementById('live-practice-feedback');
+            
+            hintBtn.disabled = true;
+            hintBtn.innerHTML = `<div class="loader !w-5 !h-5 !border-2 inline-block"></div> Thinking...`;
+
+            state.practiceMode.score -= 1; // Deduct point for hint
+            document.getElementById('live-practice-score').textContent = state.practiceMode.score;
+
+            const currentQ = state.practiceMode.questions[state.practiceMode.currentQuestionIndex];
+            const result = await getPracticeHint(currentQ.title, state.selectedLanguage);
+
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                const hintData = JSON.parse(result.candidates[0].content.parts[0].text);
+                feedbackEl.innerHTML = `<div class="p-3 rounded-lg bg-yellow-500/10 text-yellow-700 dark:text-yellow-300 text-center text-sm">💡 ${hintData.hint}</div>`;
+            } else {
+                feedbackEl.innerHTML = `<p class="text-center text-[--error]">Could not get a hint at this time.</p>`;
+                state.practiceMode.score += 1; // Refund point if hint fails
+                document.getElementById('live-practice-score').textContent = state.practiceMode.score;
+            }
+            hintBtn.classList.add('hidden');
+        }
+
+        async function handlePracticeSubmit() {
+            clearInterval(state.practiceMode.timer);
+            const timeTaken = (Date.now() - state.practiceMode.questionStartTime) / 1000;
+            
+            const submitBtn = document.getElementById('live-practice-submit-btn');
+            const hintBtn = document.getElementById('live-practice-hint-btn');
+            const nextBtn = document.getElementById('live-practice-next-btn');
+            const inputEl = document.getElementById('live-practice-input');
+            const feedbackEl = document.getElementById('live-practice-feedback');
+
+            const userAnswer = inputEl.value.trim();
+            if (!userAnswer) { 
+                feedbackEl.innerHTML = `<p class="text-center text-[--error]">Please enter a DDC number.</p>`;
+                // Restart timer if needed or just wait for user
+                return;
+            }
+            
+            inputEl.disabled = true;
+            submitBtn.classList.add('hidden');
+            hintBtn.classList.add('hidden');
+            feedbackEl.innerHTML = `<div class="flex justify-center items-center p-4"><div class="loader"></div><p class="ml-4">Evaluating your answer...</p></div>`;
+
+            const currentQ = state.practiceMode.questions[state.practiceMode.currentQuestionIndex];
+            const result = await getPracticeFeedback(currentQ.title, userAnswer, state.selectedLanguage);
+            
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                const feedbackData = JSON.parse(result.candidates[0].content.parts[0].text);
+                let score = feedbackData.score;
+                
+                // Time Bonus
+                if (timeTaken < 60 && feedbackData.evaluation === 'correct') {
+                    score += 2; // +2 points bonus
+                }
+                
+                state.practiceMode.score += score;
+                
+                // Update question data
+                currentQ.userAnswer = userAnswer;
+                currentQ.correctAnswer = feedbackData.correctAnswer;
+                currentQ.explanation = feedbackData.explanation;
+                currentQ.score = score;
+                currentQ.timeTaken = timeTaken;
+                currentQ.result = feedbackData.evaluation;
+
+                displayPracticeFeedback(feedbackData, userAnswer, score);
+                document.getElementById('live-practice-score').textContent = state.practiceMode.score;
+                nextBtn.classList.remove('hidden');
+
+            } else {
+                 feedbackEl.innerHTML = `<p class="text-center text-[--error]">Could not get feedback from AI. Please try the next question.</p>`;
+                 nextBtn.classList.remove('hidden');
+            }
+        }
+        
+        function displayPracticeFeedback(feedback, userAnswer, finalScore) {
+             const feedbackEl = document.getElementById('live-practice-feedback');
+             const resultStyles = {
+                correct: { icon: '✅', text: 'Correct', class: 'feedback-correct', color: 'text-[--success]' },
+                partial: { icon: '⚠️', text: 'Partial Match', class: 'feedback-partial', color: 'text-[--warning]' },
+                incorrect: { icon: '❌', text: 'Incorrect', class: 'feedback-incorrect', color: 'text-[--error]' }
+             };
+             const style = resultStyles[feedback.evaluation];
+
+             feedbackEl.innerHTML = `
+                <div class="feedback-card p-4 rounded-lg bg-black/5 dark:bg-white/5 ${style.class}">
+                    <p class="font-bold text-lg ${style.color}">${style.icon} ${style.text} <span class="float-right">+${finalScore} Points</span></p>
+                    <div class="grid grid-cols-2 gap-4 text-sm mt-2">
+                        <div><p class="font-semibold">Your Answer:</p><p class="font-mono">${userAnswer}</p></div>
+                        <div><p class="font-semibold">Correct Answer:</p><p class="font-mono">${feedback.correctAnswer}</p></div>
+                    </div>
+                    <p class="text-sm mt-2"><strong class="font-semibold">💡 Explanation:</strong> ${feedback.explanation}</p>
+                </div>
+            `;
+        }
+        
+        function handleNextPracticeQuestion() {
+            state.practiceMode.currentQuestionIndex++;
+            if (state.practiceMode.currentQuestionIndex < state.practiceMode.questions.length) {
+                displayPracticeQuestion();
+            } else {
+                showPracticeReport();
+            }
+        }
+
+        function showPracticeReport() {
+            clearInterval(state.practiceMode.timer);
+            dom.livePracticeModal.classList.remove('flex');
+            const practice = state.practiceMode;
+            
+            const totalQuestions = practice.questions.filter(q => q.userAnswer).length;
+            if (totalQuestions === 0) { dom.practiceReportModal.classList.remove('flex'); return; }
+
+            const correctAnswers = practice.questions.filter(q => q.result === 'correct').length;
+            const accuracy = (correctAnswers / totalQuestions) * 100;
+            const totalTime = practice.questions.reduce((acc, q) => acc + q.timeTaken, 0);
+            const avgTime = totalTime / totalQuestions;
+
+            const incorrectQuestions = practice.questions.filter(q => q.result !== 'correct' && q.userAnswer);
+            let reviewHtml = incorrectQuestions.map(q => `
+                <div class="p-3 border-t border-[--border-light] dark:border-[--border-dark]">
+                    <p class="font-semibold">${q.title}</p>
+                    <p class="text-sm"><span class="text-[--error]">Your answer: ${q.userAnswer}</span> | <span class="text-[--success]">Correct: ${q.correctAnswer}</span></p>
+                    <p class="text-xs text-[--text-light-muted] dark:text-[--text-dark-muted] mt-1">${q.explanation}</p>
+                </div>
+            `).join('');
+            if (!reviewHtml) reviewHtml = `<p class="text-center p-4">No incorrect answers to review. Great job!</p>`;
+
+            let recommendation = '';
+            if (accuracy >= 80) {
+                recommendation = `<p class="text-center mt-4 text-[--success] font-semibold">🏆 Congratulations! You've scored ${accuracy.toFixed(1)}%. You are ready for the Medium Level practice!</p>`;
+            } else {
+                 recommendation = `<p class="text-center mt-4 text-[--text-light-muted] dark:text-[--text-dark-muted]">Keep practicing! Aim for 80% accuracy to unlock the next level.</p>`;
+            }
+
+            let analysisHtml = `<div id="report-analysis-container" class="mt-4 p-4 bg-purple-500/5 rounded-lg text-center">
+                <div class="loader inline-block"></div>
+                <p class="ml-2 inline-block">Analyzing your performance for personalized feedback...</p>
+            </div>`;
+
+            const modalContent = dom.practiceReportModal.querySelector('.modal-content');
+            modalContent.innerHTML = `
+                <span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('practice-report-modal').classList.remove('flex')">&times;</span>
+                <h2 class="text-3xl font-bold text-center mb-2">Practice Session Report</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 my-6 text-center">
+                    <div><p class="text-3xl font-bold">${practice.score}</p><p class="text-sm">Total Score</p></div>
+                    <div><p class="text-3xl font-bold">${totalQuestions}/${practice.questions.length}</p><p class="text-sm">Attempted</p></div>
+                    <div><p class="text-3xl font-bold">${accuracy.toFixed(1)}%</p><p class="text-sm">Accuracy</p></div>
+                    <div><p class="text-3xl font-bold">${avgTime.toFixed(1)}s</p><p class="text-sm">Avg. Time</p></div>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Review Incorrect Answers</h3>
+                <div class="max-h-[20vh] overflow-y-auto bg-black/5 dark:bg-white/5 rounded-lg">${reviewHtml}</div>
+                
+                <h3 class="text-xl font-semibold mt-6 mb-2">💡 AI Performance Analysis</h3>
+                ${analysisHtml}
+
+                ${recommendation}
+                <div class="flex justify-center space-x-4 mt-6">
+                     <button onclick="document.getElementById('practice-report-modal').classList.remove('flex'); startLivePractice();" class="interactive-btn py-2 px-6">Play Again</button>
+                    <button onclick="window.print()" class="interactive-btn-secondary py-2 px-6">🖨️ Export Report</button>
+                </div>
+            `;
+            dom.practiceReportModal.classList.add('flex');
+
+            // Call the analysis function after rendering the modal
+            if (incorrectQuestions.length > 0) {
+                getPracticeReportAnalysis(incorrectQuestions, state.selectedLanguage).then(analysisText => {
+                    const analysisContainer = document.getElementById('report-analysis-container');
+                    if (analysisContainer) {
+                        analysisContainer.innerHTML = `<p class="text-sm text-left">${analysisText.replace(/\n/g, '<br>')}</p>`;
+                    }
+                });
+            } else {
+                const analysisContainer = document.getElementById('report-analysis-container');
+                if (analysisContainer) {
+                    analysisContainer.innerHTML = `<p class="text-sm text-center text-[--success]">Excellent work! No mistakes to analyze. You're a DDC pro!</p>`;
+                }
+            }
+        }
+
+
+        // --- PARTICLE ANIMATION ---
+        function initParticles() {
+            const canvas = dom.backgroundCanvas, ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            state.animation.particles = [];
+            const isDark = document.documentElement.classList.contains('dark');
+            const particleColor = isDark ? 'rgba(0, 201, 255, 0.4)' : 'rgba(26, 61, 124, 0.4)';
+            const lineColor = isDark ? 'rgba(0, 201, 255, 0.08)' : 'rgba(26, 61, 124, 0.08)';
+            let particleCount = Math.floor((canvas.width * canvas.height) / 15000);
+            if (particleCount > 150) particleCount = 150;
+            class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2 + 1; this.speedX = Math.random() * 0.5 - 0.25; this.speedY = Math.random() * 0.5 - 0.25; } update() { if (this.x > canvas.width + 10 || this.x < -10) this.speedX *= -1; if (this.y > canvas.height + 10 || this.y < -10) this.speedY *= -1; this.x += this.speedX; this.y += this.speedY; if (state.animation.mouse.x !== null) { const dx = this.x - state.animation.mouse.x, dy = this.y - state.animation.mouse.y; if (Math.sqrt(dx * dx + dy * dy) < 150) { this.x += dx / 20; this.y += dy / 20; } } } draw() { ctx.fillStyle = particleColor; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+            for (let i = 0; i < particleCount; i++) state.animation.particles.push(new Particle());
+            function connect() { for (let a = 0; a < state.animation.particles.length; a++) { for (let b = a; b < state.animation.particles.length; b++) { const distance = Math.sqrt(Math.pow(state.animation.particles[a].x - state.animation.particles[b].x, 2) + Math.pow(state.animation.particles[a].y - state.animation.particles[b].y, 2)); if (distance < 150) { const opacity = 1 - (distance/150); ctx.strokeStyle = lineColor.replace('0.08', opacity.toFixed(2)); ctx.lineWidth = 0.5; ctx.beginPath(); ctx.moveTo(state.animation.particles[a].x, state.animation.particles[a].y); ctx.lineTo(state.animation.particles[b].x, state.animation.particles[b].y); ctx.stroke(); } } } }
+            function animate() { if (!state.animation.enabled) return; ctx.clearRect(0, 0, canvas.width, canvas.height); state.animation.particles.forEach(p => { p.update(); p.draw(); }); connect(); state.animation.animationFrameId = requestAnimationFrame(animate); }
+            cancelAnimationFrame(state.animation.animationFrameId); animate();
+        }
+        function toggleAnimation(enabled) { state.animation.enabled = enabled; localStorage.setItem('animationEnabled', enabled); dom.backgroundCanvas.style.opacity = enabled ? '1' : '0'; if (enabled) { initParticles(); } else { cancelAnimationFrame(state.animation.animationFrameId); const ctx = dom.backgroundCanvas.getContext('2d'); ctx.clearRect(0, 0, dom.backgroundCanvas.width, dom.backgroundCanvas.height); } }
+        
+        async function handleImageUpload(file) {
+            if (!file) return;
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showError('Invalid file type. Please upload a JPG, PNG, or WEBP image.');
+                return;
+            }
+
+            clearAll(true);
+            setUILoading(true, 'extractingText');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+
+                // Display thumbnail
+                dom.imageUploadPrompt.classList.add('hidden');
+                dom.imagePreviewContainer.classList.remove('hidden');
+                dom.imagePreviewContainer.innerHTML = `<img src="${base64Image}" class="max-h-24 mx-auto rounded-md">`;
+                
+                // Extract text
+                const result = await extractTextFromImage(base64Image, file.type);
+                if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                     try {
+                        const parsedData = JSON.parse(result.candidates[0].content.parts[0].text);
+                        let fullText = `${parsedData.title}\n${parsedData.subtitle}\n${parsedData.author}`;
+                        dom.titleInput.value = parsedData.title || '';
+                        dom.detectedTextInput.value = fullText.trim();
+                        dom.imageAnalysisContainer.classList.remove('hidden');
+                        
+                        // Automatically trigger classification
+                        await handleMainAction();
+
+                     } catch (e) {
+                         console.error("JSON Parse Error on image extraction:", e);
+                         showError("Could not parse text from image. Please try again.");
+                         setUILoading(false);
+                     }
+                } else {
+                    setUILoading(false);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function showHistoricalEvolution(topic) {
+            dom.historicalEvolutionModal.classList.add('flex');
+            const modalContent = dom.historicalEvolutionModal.querySelector('.modal-content');
+            modalContent.innerHTML = `<div class="h-64 flex items-center justify-center"><div class="loader"></div><p class="ml-4">${translations[state.selectedLanguage].fetchingHistory}</p></div>`;
+            
+            const result = await getHistoricalEvolution(topic, state.selectedLanguage);
+
+            if (result && result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                try {
+                    const parsedData = JSON.parse(result.candidates[0].content.parts[0].text).history;
+                    displayHistoricalData(parsedData, topic);
+                } catch (e) {
+                    modalContent.innerHTML = `<p class="text-center text-[--error]">Failed to parse historical data.</p>`;
+                }
+            } else {
+                 modalContent.innerHTML = `<p class="text-center text-[--error]">Could not fetch historical data from AI.</p>`;
+            }
+        }
+
+        function displayHistoricalData(history, topic) {
+             const modalContent = dom.historicalEvolutionModal.querySelector('.modal-content');
+             const editionColors = { '19': 'bg-gray-400', '20': 'bg-blue-400', '21': 'bg-green-400', '22': 'bg-orange-400', '23': 'bg-purple-400' };
+
+             let timelineHtml = `
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    <div class="flex justify-between">
+             `;
+             history.forEach(item => {
+                timelineHtml += `
+                    <div class="timeline-item flex-1 text-center">
+                        <div class="timeline-dot ${editionColors[item.edition] || 'bg-gray-400'}"></div>
+                        <p class="mt-8 font-bold text-sm">${item.edition}th</p>
+                        <p class="font-mono text-xs">${item.number}</p>
+                        <div class="timeline-tooltip">
+                            <p><strong>Year:</strong> ${item.year}</p>
+                            <p>${item.changeNote}</p>
+                        </div>
+                    </div>
+                `;
+             });
+             timelineHtml += `</div></div>`;
+
+             let tableHtml = `<table class="w-full text-sm text-left mt-4">
+                                <thead class="text-xs uppercase bg-black/5 dark:bg-white/5">
+                                    <tr><th scope="col" class="px-6 py-3">Edition</th><th scope="col" class="px-6 py-3">Year</th><th scope="col" class="px-6 py-3">DDC Number</th><th scope="col" class="px-6 py-3">Change Note</th></tr>
+                                </thead>
+                                <tbody>`;
+            history.forEach(item => {
+                tableHtml += `<tr class="border-b dark:border-gray-700">
+                                <td class="px-6 py-4">${item.edition}th</td><td class="px-6 py-4">${item.year}</td><td class="px-6 py-4 font-mono">${item.number}</td><td class="px-6 py-4">${item.changeNote}</td>
+                              </tr>`;
+            });
+            tableHtml += `</tbody></table>`;
+            
+             modalContent.innerHTML = `
+                <span class="close-btn absolute top-4 right-6 text-2xl cursor-pointer" onclick="document.getElementById('historical-evolution-modal').classList.remove('flex')">&times;</span>
+                <h2 class="text-2xl font-bold mb-2">Historical Evolution for "${topic}"</h2>
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex items-center space-x-2 bg-black/5 dark:bg-white/5 rounded-lg p-1 text-sm">
+                        <button id="timeline-view-btn" class="px-3 py-1 rounded-md bg-[--primary] text-white">Timeline</button>
+                        <button id="table-view-btn" class="px-3 py-1 rounded-md">Compare</button>
+                    </div>
+                    <button id="print-history-btn" class="text-xs bg-gray-500/10 text-gray-500 font-semibold py-1 px-3 rounded-full hover:bg-gray-500/20">🖨️ Print / Export</button>
+                </div>
+
+                <div id="evolution-timeline-view">${timelineHtml}</div>
+                <div id="evolution-table-view" class="hidden">${tableHtml}</div>
+            `;
+            
+            const timelineBtn = modalContent.querySelector('#timeline-view-btn');
+            const tableBtn = modalContent.querySelector('#table-view-btn');
+            const timelineView = modalContent.querySelector('#evolution-timeline-view');
+            const tableView = modalContent.querySelector('#evolution-table-view');
+
+            timelineBtn.addEventListener('click', () => {
+                timelineBtn.classList.add('bg-[--primary]', 'text-white');
+                tableBtn.classList.remove('bg-[--primary]', 'text-white');
+                timelineView.classList.remove('hidden');
+                tableView.classList.add('hidden');
+            });
+            tableBtn.addEventListener('click', () => {
+                tableBtn.classList.add('bg-[--primary]', 'text-white');
+                timelineBtn.classList.remove('bg-[--primary]', 'text-white');
+                tableView.classList.remove('hidden');
+                timelineView.classList.add('hidden');
+            });
+            modalContent.querySelector('#print-history-btn').addEventListener('click', () => window.print());
+        }
+
+        // --- DDC QUIZ SYSTEM ---
+        function startDDCQuiz() {
+            dom.quizModal.classList.add('flex');
+            // If all stages are completed, show final results, otherwise show start screen
+            if (state.quiz.stageStatus.every(s => s === 'completed')) {
+                 renderFinalResults();
+            } else {
+                 renderQuizUI();
+            }
+        }
+
+        function saveQuizProgress() {
+            localStorage.setItem('ddcQuizProgress', JSON.stringify(state.quiz));
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function resetQuiz() {
+            clearInterval(state.quiz.timer);
+            state.quiz = {
+                currentStage: 0,
+                scores: [0, 0, 0],
+                stageStatus: ['active', 'locked', 'locked'],
+                timer: null,
+                soundEnabled: state.quiz.soundEnabled,
+                currentQuestions: [],
+                currentQuestionIndex: 0,
+                userAnswers: [],
+            };
+            saveQuizProgress();
+            renderQuizUI();
+        }
+        
+        function renderQuizUI() {
+             renderQuizStartScreen();
+        }
+        
+        function renderQuizStartScreen() {
+             const modalContent = dom.quizModal.querySelector('.modal-content');
+             const stages = ['DDC Fundamentals', 'Tables and Rules', 'Main Classes'];
+             
+             if(state.quiz.stageStatus.every(s => s === 'completed')) {
+                renderFinalResults();
+                return;
+             }
+             
+             let stageButtonsHtml = stages.map((title, index) => {
+                const status = state.quiz.stageStatus[index];
+                const score = state.quiz.scores[index];
+                let content = ``;
+                if (status === 'completed') {
+                    content = `<span class="text-2xl">✅</span><p class="font-bold">${title}</p><p class="text-sm">Score: ${score}/100</p>`;
+                } else if (status === 'active') {
+                    content = `<span class="text-2xl">▶️</span><p class="font-bold">${title}</p><p class="text-sm">Start Now</p>`;
+                } else { // locked
+                    content = `<span class="text-2xl">🔒</span><p class="font-bold text-[--text-light-muted] dark:text-[--text-dark-muted]">${title}</p><p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">Locked</p>`;
+                }
+
+                return `<button class="text-center p-4 rounded-lg border-2 ${status === 'locked' ? 'border-dashed' : ''} ${status === 'active' ? 'border-[--secondary]' : 'border-transparent'} bg-black/5 dark:bg-white/5 transition hover:shadow-lg hover:-translate-y-1" 
+                                ${status !== 'active' ? 'disabled' : ''} onclick="startQuizStage(${index})">
+                            ${content}
+                        </button>`;
+             }).join('');
+
+            modalContent.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h2 class="text-3xl font-bold">DDC Knowledge Challenge</h2>
+                        <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">Test your expertise in three stages.</p>
+                    </div>
+                    <div>
+                        <button class="p-2" onclick="toggleQuizSound()">
+                            <svg id="quiz-sound-on" class="${state.quiz.soundEnabled ? '' : 'hidden'} w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.88 5.88a15 15 0 0121.213 0M6.5 12H4a1 1 0 00-1 1v2a1 1 0 001 1h2.5l5 5V7l-5 5z"></path></svg>
+                            <svg id="quiz-sound-off" class="${state.quiz.soundEnabled ? 'hidden' : ''} w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clip-rule="evenodd"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l-4-4m0 4l4-4"></path></svg>
+                        </button>
+                        <button class="p-2" onclick="document.getElementById('quiz-modal').classList.remove('flex')">&times;</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-8">
+                    ${stageButtonsHtml}
+                </div>
+                 <div class="text-center">
+                    <button class="interactive-btn-secondary text-sm" onclick="resetQuiz()">Reset All Progress</button>
+                </div>
+            `;
+        }
+
+        function startQuizStage(index) {
+            playQuizSound('start');
+            state.quiz.currentStage = index;
+            state.quiz.currentQuestions = shuffleArray([...ddcQuizData[index]]);
+            state.quiz.currentQuestionIndex = 0;
+            state.quiz.userAnswers = [];
+            renderQuizQuestion();
+            
+            // Start timer
+            let timeLeft = 180;
+            clearInterval(state.quiz.timer);
+            state.quiz.timer = setInterval(() => {
+                timeLeft--;
+                const timerEl = document.getElementById('quiz-timer');
+                const timerBarEl = document.getElementById('quiz-timer-bar');
+                if(timerEl) {
+                    timerEl.textContent = `${Math.floor(timeLeft / 60)}:${(timeLeft % 60).toString().padStart(2, '0')}`;
+                    timerBarEl.style.width = `${(timeLeft / 180) * 100}%`;
+                }
+                if (timeLeft <= 0) {
+                    clearInterval(state.quiz.timer);
+                    finishQuizStage();
+                }
+            }, 1000);
+        }
+
+        function renderQuizQuestion() {
+            const modalContent = dom.quizModal.querySelector('.modal-content');
+            const stageIndex = state.quiz.currentStage;
+            const qIndex = state.quiz.currentQuestionIndex;
+            const question = state.quiz.currentQuestions[qIndex];
+            
+            const optionsHtml = question.o.map((opt, i) => `
+                <button class="quiz-option text-left p-4 rounded-lg w-full" data-option="${i}">
+                    <span class="font-bold mr-2">${String.fromCharCode(65 + i)}.</span> ${opt}
+                </button>
+            `).join('');
+
+            modalContent.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-bold">Stage ${stageIndex + 1}: ${['DDC Fundamentals', 'Tables and Rules', 'Main Classes'][stageIndex]}</h2>
+                    <div class="font-mono text-lg" id="quiz-timer">3:00</div>
+                </div>
+                <div class="progress-bar-container mb-4"><div id="quiz-timer-bar" class="progress-bar" style="width: 100%;"></div></div>
+
+                <div class="my-6">
+                     <p class="text-sm text-[--text-light-muted] dark:text-[--text-dark-muted]">Question ${qIndex + 1} of ${state.quiz.currentQuestions.length}</p>
+                    <p class="text-lg font-semibold mt-1">${question.q}</p>
+                </div>
+                <div class="space-y-3" id="quiz-options-container">${optionsHtml}</div>
+                 <div id="quiz-explanation" class="hidden mt-4 p-3 bg-blue-500/10 text-sm rounded-lg"></div>
+                <div class="flex justify-end mt-6">
+                    <button id="quiz-submit-btn" class="interactive-btn" disabled>Submit</button>
+                    <button id="quiz-next-btn" class="interactive-btn-success hidden">Next &rarr;</button>
+                </div>
+            `;
+            
+            const optionsContainer = document.getElementById('quiz-options-container');
+            optionsContainer.addEventListener('click', (e) => {
+                const selectedOption = e.target.closest('.quiz-option');
+                if(selectedOption) {
+                    document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+                    selectedOption.classList.add('selected');
+                    document.getElementById('quiz-submit-btn').disabled = false;
+                }
+            });
+            document.getElementById('quiz-submit-btn').addEventListener('click', submitQuizAnswer);
+        }
+        
+        function submitQuizAnswer() {
+             const selectedOptionEl = document.querySelector('.quiz-option.selected');
+             if(!selectedOptionEl) return;
+
+             const selectedAnswer = parseInt(selectedOptionEl.dataset.option);
+             const currentQuestion = state.quiz.currentQuestions[state.quiz.currentQuestionIndex];
+             const isCorrect = selectedAnswer === currentQuestion.a;
+
+             state.quiz.userAnswers[state.quiz.currentQuestionIndex] = {
+                 question: currentQuestion.q,
+                 selected: selectedAnswer,
+                 correct: currentQuestion.a,
+                 isCorrect: isCorrect,
+                 explanation: currentQuestion.e
+             };
+
+             document.getElementById('quiz-submit-btn').classList.add('hidden');
+             const options = document.querySelectorAll('.quiz-option');
+             options.forEach((opt, i) => {
+                opt.disabled = true;
+                if (i === currentQuestion.a) {
+                    opt.classList.add('correct');
+                } else if (i === selectedAnswer) {
+                    opt.classList.add('incorrect');
+                }
+             });
+
+             if(isCorrect) {
+                 playQuizSound('correct');
+             } else {
+                 playQuizSound('incorrect');
+                 const explanationEl = document.getElementById('quiz-explanation');
+                 explanationEl.innerHTML = `💡 <strong>Explanation:</strong> ${currentQuestion.e}`;
+                 explanationEl.classList.remove('hidden');
+             }
+
+             const nextBtn = document.getElementById('quiz-next-btn');
+             nextBtn.classList.remove('hidden');
+             nextBtn.addEventListener('click', () => {
+                 state.quiz.currentQuestionIndex++;
+                 if (state.quiz.currentQuestionIndex < state.quiz.currentQuestions.length) {
+                     renderQuizQuestion();
+                 } else {
+                     finishQuizStage();
+                 }
+             });
+        }
+        
+        function finishQuizStage() {
+            clearInterval(state.quiz.timer);
+            const stageIndex = state.quiz.currentStage;
+            const correctAnswers = state.quiz.userAnswers.filter(a => a.isCorrect).length;
+            const score = correctAnswers * 10;
+            
+            state.quiz.scores[stageIndex] = score;
+            state.quiz.stageStatus[stageIndex] = 'completed';
+
+            if (stageIndex + 1 < ddcQuizData.length) {
+                state.quiz.stageStatus[stageIndex + 1] = 'active';
+            }
+            saveQuizProgress();
+            
+            if (score >= 60) {
+                 playQuizSound('complete');
+                 triggerConfetti();
+            }
+
+            renderStageSummary();
+        }
+
+        function renderStageSummary() {
+            const modalContent = dom.quizModal.querySelector('.modal-content');
+            const stageIndex = state.quiz.currentStage;
+            const score = state.quiz.scores[stageIndex];
+            const nextStageExists = stageIndex + 1 < ddcQuizData.length;
+            const allComplete = state.quiz.stageStatus.every(s => s === 'completed');
+
+            let buttonHtml;
+            if (allComplete) {
+                buttonHtml = `<button class="interactive-btn-success" onclick="renderFinalResults()">View Final Results</button>`;
+            } else if (nextStageExists) {
+                 buttonHtml = `<button class="interactive-btn" onclick="startQuizStage(${stageIndex + 1})">Start Next Stage &rarr;</button>`;
+            } else {
+                 buttonHtml = `<button class="interactive-btn" onclick="renderQuizStartScreen()">Back to Stages</button>`;
+            }
+            
+            modalContent.innerHTML = `
+                <div class="text-center p-8">
+                    <h2 class="text-3xl font-bold mb-2">Stage ${stageIndex + 1} Complete!</h2>
+                    <p class="text-lg">Your Score: <span class="font-bold text-4xl text-[--accent]">${score}</span> / 100</p>
+                    <div class="flex justify-center space-x-4 mt-8">
+                        <button class="interactive-btn-secondary" onclick="startQuizStage(${stageIndex})">Retry Stage</button>
+                        ${buttonHtml}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderFinalResults() {
+             const modalContent = dom.quizModal.querySelector('.modal-content');
+             const totalScore = state.quiz.scores.reduce((a, b) => a + b, 0);
+             const percentage = (totalScore / 300) * 100;
+             let grade = 'Average';
+             let gradeColor = 'text-gray-500';
+             if (percentage >= 90) { grade = 'A+'; gradeColor = 'text-[--success]'; } 
+             else if (percentage >= 80) { grade = 'A'; gradeColor = 'text-[--success]'; }
+             else if (percentage >= 70) { grade = 'B'; gradeColor = 'text-yellow-500'; }
+             else if (percentage >= 60) { grade = 'C'; gradeColor = 'text-orange-500'; }
+             else if (percentage >= 50) { grade = 'D'; gradeColor = 'text-[--error]'; }
+
+             modalContent.innerHTML = `
+                <div class="text-center p-6">
+                    <h2 class="text-3xl font-bold">Quiz Complete!</h2>
+                    <p class="mb-6">Here's your final report card.</p>
+
+                    <div class="relative inline-block my-4">
+                        <svg id="quiz-result-circle" class="transform -rotate-90">
+                            <circle cx="75" cy="75" r="65" stroke="currentColor" stroke-width="10" class="text-gray-200 dark:text-gray-700" fill="transparent"/>
+                            <circle id="quiz-result-progress" cx="75" cy="75" r="65" stroke="url(#grade-gradient)" stroke-width="10" fill="transparent" stroke-linecap="round"/>
+                            <defs>
+                               <linearGradient id="grade-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                   <stop offset="0%" stop-color="var(--accent)" />
+                                   <stop offset="100%" stop-color="var(--secondary)" />
+                               </linearGradient>
+                            </defs>
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-bold ${gradeColor}">${grade}</span>
+                            <span class="text-sm">${percentage.toFixed(1)}%</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 text-center my-6">
+                        <div><p class="text-2xl font-bold">${state.quiz.scores[0]}</p><p class="text-xs">Stage 1</p></div>
+                        <div><p class="text-2xl font-bold">${state.quiz.scores[1]}</p><p class="text-xs">Stage 2</p></div>
+                        <div><p class="text-2xl font-bold">${state.quiz.scores[2]}</p><p class="text-xs">Stage 3</p></div>
+                    </div>
+                    
+                    <div class="flex justify-center space-x-4 mt-8">
+                        <button class="interactive-btn-secondary" onclick="resetQuiz()">Take Quiz Again</button>
+                        <button class="interactive-btn" onclick="renderQuizStartScreen()">Back to Stages</button>
+                    </div>
+                </div>
+             `;
+             
+            const circle = document.getElementById('quiz-result-progress');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            const offset = circumference - percentage / 100 * circumference;
+            setTimeout(() => { circle.style.strokeDashoffset = offset; }, 100);
+        }
+
+        function toggleQuizSound() {
+             state.quiz.soundEnabled = !state.quiz.soundEnabled; 
+             saveQuizProgress();
+             renderQuizUI();
+        }
+        
+        function playQuizSound(type) {
+            if(!state.quiz.soundEnabled) return;
+            // This is a placeholder for actual audio playback
+            console.log(`Playing sound: ${type}`);
+        }
+        
+        function triggerConfetti() {
+             const container = dom.quizModal.querySelector('.modal-content');
+             for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.animationDuration = Math.random() * 2 + 3 + 's';
+                confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                container.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+             }
+        }
+        
+        // --- INIT & Event Listeners ---
+        function initAccessGate() {
+             setLanguage(state.selectedLanguage);
+            const rememberedUntil = localStorage.getItem('deviceRememberedUntil');
+            if (rememberedUntil && new Date().getTime() < parseInt(rememberedUntil)) { grantAccess(); return; }
+            const lockoutEnd = sessionStorage.getItem('accessLockoutEnd');
+            if (lockoutEnd && new Date().getTime() < parseInt(lockoutEnd)) { startLockout(); }
+            dom.accessCodeInputs.forEach((input, index) => { input.addEventListener('input', () => { if (input.value.length === 1 && index < dom.accessCodeInputs.length - 1) dom.accessCodeInputs[index + 1].focus(); dom.accessSubmitBtn.disabled = !Array.from(dom.accessCodeInputs).every(i => i.value.length === 1); }); input.addEventListener('keydown', (e) => { if (e.key === 'Backspace' && !input.value && index > 0) dom.accessCodeInputs[index - 1].focus(); }); });
+            dom.accessSubmitBtn.addEventListener('click', handleAccessKeyValidation);
+        }
+
+        function initMainApp() {
+            setLanguage(state.selectedLanguage);
+            
+            document.getElementById('footer-year').textContent = new Date().getFullYear();
+            window.addEventListener('scroll', () => dom.appHeader.classList.toggle('scrolled', window.scrollY > 10));
+            handleAdvancedToggle(state.advancedOptionsOpen);
+            dom.advancedOptionsToggle.addEventListener('click', () => handleAdvancedToggle(!state.advancedOptionsOpen));
+
+            dom.animationToggle.checked = state.animation.enabled;
+            dom.linkedDataToggle.checked = state.useLinkedData;
+            dom.debateDetailsToggle.checked = state.showDebateDetails;
+            
+            toggleAnimation(state.animation.enabled);
+            window.addEventListener('resize', () => { if (state.animation.enabled) initParticles(); });
+            window.addEventListener('mousemove', e => { state.animation.mouse.x = e.clientX; state.animation.mouse.y = e.clientY; });
+            
+            dom.animationToggle.addEventListener('change', (e) => toggleAnimation(e.target.checked));
+            dom.linkedDataToggle.addEventListener('change', (e) => {
+                state.useLinkedData = e.target.checked;
+                localStorage.setItem('useLinkedData', state.useLinkedData);
+            });
+            dom.debateDetailsToggle.addEventListener('change', (e) => {
+                state.showDebateDetails = e.target.checked;
+                localStorage.setItem('showDebateDetails', state.showDebateDetails);
+                const wrapper = document.getElementById('debate-details-wrapper');
+                if (wrapper) {
+                    wrapper.classList.toggle('hidden', !state.showDebateDetails);
+                }
+            });
+            
+            // Image Upload Listeners
+            dom.imageDropZone.addEventListener('click', () => dom.imageUploadInput.click());
+            dom.imageUploadInput.addEventListener('change', (e) => handleImageUpload(e.target.files[0]));
+            dom.imageDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dom.imageDropZone.classList.add('dragover');
+            });
+            dom.imageDropZone.addEventListener('dragleave', () => dom.imageDropZone.classList.remove('dragover'));
+            dom.imageDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dom.imageDropZone.classList.remove('dragover');
+                handleImageUpload(e.dataTransfer.files[0]);
+            });
+
+            dom.resultsWrapper.addEventListener('click', function(e){
+                const target = e.target.closest('#historical-evolution-btn');
+                if(target) {
+                    showHistoricalEvolution(target.dataset.topic);
+                } else if (e.target.closest('#export-report-btn') && state.lastResultData) {
+                    // This is a placeholder for a more robust export function
+                    alert('Export functionality would be implemented here.');
+                }
+            });
+            
+            dom.debateOutputContainer.addEventListener('click', function(e){
+                const target = e.target.closest('#historical-evolution-btn');
+                if(target) {
+                    showHistoricalEvolution(target.dataset.topic);
+                }
+            });
+
+            dom.lodOutputContainer.addEventListener('click', function(e) {
+                if (e.target.classList.contains('view-linked-data-btn')) {
+                    const view = e.target.closest('.lod-result-card').querySelector('.linked-data-view');
+                    view.classList.toggle('open');
+                }
+            });
+
+            dom.languageSelectorBtn.addEventListener('click', () => dom.languageDropdown.classList.toggle('hidden'));
+            document.addEventListener('click', (e) => {
+                if (!dom.languageSelectorBtn.contains(e.target) && !dom.languageDropdown.contains(e.target)) {
+                    dom.languageDropdown.classList.add('hidden');
+                }
+            });
+            dom.languageOptions.forEach(option => option.addEventListener('click', (e) => { e.preventDefault(); setLanguage(e.target.dataset.lang); dom.languageDropdown.classList.add('hidden'); }));
+
+            dom.tabGenerate.addEventListener('click', () => switchMode('generate'));
+            dom.tabVerify.addEventListener('click', () => switchMode('verify'));
+            dom.mainActionBtn.addEventListener('click', handleMainAction);
+            dom.clearBtn.addEventListener('click', () => clearAll(false));
+            dom.practiceTitleBtn.addEventListener('click', showPracticeTitleGenerator);
+            dom.themeToggle.addEventListener('click', handleThemeToggle);
+            
+            dom.headerQuizBtn.addEventListener('click', startDDCQuiz);
+            dom.headerPracticeBtn.addEventListener('click', startLivePractice);
+            dom.headerReferenceBtn.addEventListener('click', showReference);
+            dom.headerChatBtn.addEventListener('click', showChat);
+            dom.headerHistoryBtn.addEventListener('click', showHistory);
+            
+            document.querySelectorAll('.edition-btn').forEach(btn => btn.addEventListener('click', () => { state.selectedEdition = btn.dataset.edition; updateTabStyles(); }));
+
+            if(recognition) {
+                dom.voiceInputBtn.addEventListener('click', () => recognition.start());
+                recognition.onresult = (event) => { dom.titleInput.value = event.results[0][0].transcript; };
+            } else {
+                dom.voiceInputBtn.style.display = 'none';
+            }
+
+            const isDark = document.documentElement.classList.contains('dark');
+            document.getElementById('theme-icon-light').classList.toggle('hidden', isDark);
+            document.getElementById('theme-icon-dark').classList.toggle('hidden', !isDark);
+            
+            // Add Ripple Effect Listener using event delegation
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.interactive-btn, .interactive-btn-secondary, .interactive-btn-success, .interactive-btn-warning');
+                if (target) {
+                    const circle = document.createElement("span");
+                    const diameter = Math.max(target.clientWidth, target.clientHeight);
+                    const radius = diameter / 2;
+                    circle.style.width = circle.style.height = `${diameter}px`;
+                    circle.style.left = `${e.clientX - (target.getBoundingClientRect().left + radius)}px`;
+                    circle.style.top = `${e.clientY - (target.getBoundingClientRect().top + radius)}px`;
+                    circle.classList.add("ripple");
+                    const ripple = target.getElementsByClassName("ripple")[0];
+                    if (ripple) { ripple.remove(); }
+                    target.appendChild(circle);
+                }
+            });
+
+            switchMode('generate');
+        }
+        
+        const ddcQuizData = [
+            // Stage 1: DDC Fundamentals
+            [
+                { q: "Who developed the Dewey Decimal Classification System?", o: ["Charles Dewey", "Melvil Dewey", "John Cutter", "Henry Bliss"], a: 1, e: "Melvil Dewey, an American librarian, created the DDC system in 1876, revolutionizing library organization." },
+                { q: "What is the primary purpose of DDC?", o: ["To rank books by popularity", "To organize non-fiction books by subject", "To catalog fiction books alphabetically", "To track library inventory"], a: 1, e: "DDC's main goal is to place non-fiction books on the shelf in a logical order based on their subject matter." },
+                { q: "How many main classes are there in DDC?", o: ["5", "10", "20", "100"], a: 1, e: "The DDC system is built upon ten main classes (000-900), each representing a broad field of knowledge." },
+                { q: "The numbers in DDC are an example of what kind of notation?", o: ["Pure notation", "Mixed notation", "Expressive notation", "Hierarchical notation"], a: 0, e: "DDC uses 'pure notation,' meaning it only uses Arabic numerals (0-9) for its classification numbers." },
+                { q: "A DDC number consists of at least how many digits before the decimal?", o: ["1", "2", "3", "4"], a: 2, e: "Every DDC number must have at least three digits to the left of the decimal point, using leading zeros if necessary (e.g., 001, 020)." },
+                { q: "What does the first digit in a DDC number represent?", o: ["The specific topic", "The author's name", "The main class", "The publication year"], a: 2, e: "The first digit indicates one of the ten main classes, such as 5 for Science or 9 for History." },
+                { q: "What is the term for adding numbers from DDC Tables to a base number?", o: ["Number building", "Class synthesis", "Notation expansion", "Decimal weaving"], a: 0, e: "Number building is the process of creating a more specific classification number by appending notations from the DDC Tables." },
+                { q: "The 'DDC' is maintained and updated by which organization?", o: ["The Library of Congress", "The American Library Association", "OCLC (Online Computer Library Center)", "The British Library"], a: 2, e: "OCLC, a global library cooperative, has been responsible for editing and publishing the DDC since 1988." },
+                { q: "What principle ensures that subjects are always found in the same place in the DDC schedules?", o: ["Integrity of numbers", "Subject integrity", "Hierarchical force", "Hospitality in arrays"], a: 0, e: "The principle of 'integrity of numbers' means that a specific number will consistently represent the same subject throughout the classification system." },
+                { q: "Which DDC main class is intentionally left vacant?", o: ["100s", "400s", "000s", "It's not vacant, it's 'Generalities'"], a: 3, e: "The 000s class, known as Generalities, is used for works not specific to any one discipline, like encyclopedias and computers." }
+            ],
+            // Stage 2: Tables and Rules
+            [
+                { q: "In DDC, which Table is used for Geographic Areas?", o: ["Table 1", "Table 2", "Table 3", "Table 5"], a: 1, e: "Table 2 is dedicated to geographic areas, historical periods, and persons, allowing for specific location-based classification." },
+                { q: "The standard subdivision for 'dictionaries' is found in which table?", o: ["Table 1", "Table 4", "Table 6", "Table 2"], a: 0, e: "Table 1, Standard Subdivisions, contains the notation '-03' which is used to indicate a dictionary, encyclopedia, or concordance on a subject." },
+                { q: "If you want to classify a book about the French language, which Table would you primarily consult?", o: ["Table 2 (France)", "Table 4 (Subdivisions of Languages)", "Table 5 (Ethnic Groups)", "Table 6 (Languages)"], a: 3, e: "Table 6 provides the base notations for specific languages. You would find the notation for 'French' here." },
+                { q: "What does the notation '-09' from Table 1 generally signify?", o: ["Historical and geographic treatment", "Teaching the subject", "Research on the subject", "Philosophy and theory"], a: 0, e: "The standard subdivision '-09' is used to add historical or geographical context to a subject, often used in conjunction with Table 2." },
+                { q: "To build the number for 'Psychology of Women,' you would combine the base number for Psychology (150) with a notation from which class?", o: ["305.4 (Women)", "Table 1", "Table 5", "618 (Gynecology)"], a: 0, e: "You would add notation from the social sciences class, specifically 305.4 for Women, following instructions in the schedules." },
+                { q: "The 'Rule of Zero' in DDC number building applies to which table?", o: ["Table 2", "All Tables", "Table 1", "Table 3"], a: 2, e: "The Rule of Zero applies to Table 1 standard subdivisions, dictating when and how many zeros should be used when adding the notation." },
+                { q: "Table 3 is used for subdivisions of what?", o: ["Individual Literatures", "Geographic Areas", "Individual Languages", "Historical Periods"], a: 0, e: "Table 3 contains special subdivisions for the arts, individual literatures, and specific literary forms (e.g., -1 for Poetry, -3 for Fiction)." },
+                { q: "When classifying a biography, where do you typically find the instruction to add biographical notations?", o: ["Table 1", "The main schedule for the subject", "Table 2", "The 920s schedule"], a: 1, e: "Instructions for classifying biographies are found within the main schedule for the subject with which the person is associated." },
+                { q: "What is the purpose of Table 5?", o: ["To specify languages", "To list standard forms like dictionaries", "To notate racial, ethnic, national groups", "To list geographic places"], a: 2, e: "Table 5 provides notations for specific racial, ethnic, and national groups, allowing for classification of works about these groups." },
+                { q: "If a subject has aspects in two different classes (e.g., agricultural economics), what is the 'first-of-two' rule?", o: ["Choose the number that appears first in the schedules", "Choose the broader number", "Choose the number that best fits the author's intent", "Choose the number with fewer digits"], a: 0, e: "When a topic could fit into two classes, the 'first-of-two' rule generally instructs the classifier to use the number that comes first in the DDC sequence." }
+            ],
+            // Stage 3: Main Classes, Divisions & Sections
+            [
+                { q: "Which DDC Main Class covers Technology?", o: ["500s", "600s", "700s", "900s"], a: 1, e: "The 600s class is designated for Technology (Applied Sciences), including medicine, engineering, and agriculture." },
+                { q: "The number 943 would be used for a book on the history of which country?", o: ["France", "Russia", "Germany", "United Kingdom"], a: 2, e: "In the 900s (History & Geography), the 940s cover Europe, and 943 is specifically for the history of Germany." },
+                { q: "A book about the paintings of Pablo Picasso would be classified in which main class?", o: ["100s (Philosophy)", "800s (Literature)", "900s (History)", "700s (The Arts)"], a: 3, e: "The 700s class is for The Arts. Painting is in the 750s, so Picasso's work would be classified there." },
+                { q: "What subject is found in the 200s division?", o: ["Social Sciences", "Language", "Religion", "Literature"], a: 2, e: "The 200s main class is dedicated to Religion, including Christianity (220-280) and other world religions (290s)." },
+                { q: "The DDC number for the English language is:", o: ["410", "420", "430", "440"], a: 1, e: "The 400s are for Language. Within this class, 420 is specifically for the English language." },
+                { q: "Computer Science is located in which section?", o: ["001-009", "300-309", "510-519", "620-629"], a: 0, e: "Computer science is found in the 000s (Generalities), specifically in the 004-006 range." },
+                { q: "A book about the laws of Pakistan would be classified under which division?", o: ["320 (Political Science)", "340 (Law)", "954.91 (History of Pakistan)", "350 (Public Administration)"], a: 1, e: "Law is in the 340s. The number would be built further using Table 2 for Pakistan to specify 'Law of Pakistan'." },
+                { q: "Which division covers the subject of Chemistry?", o: ["510 (Mathematics)", "520 (Astronomy)", "530 (Physics)", "540 (Chemistry)"], a: 3, e: "Within the 500s (Science), the 540s division is specifically for Chemistry and allied sciences." },
+                { q: "The main class for Literature is:", o: ["700s", "800s", "400s", "900s"], a: 1, e: "The 800s class is for Literature, which is then subdivided by language (e.g., 820 for English literature)." },
+                { q: "Where would you classify a book about the architecture of mosques?", o: ["297 (Islam)", "710 (Civic & landscape art)", "720 (Architecture)", "900 (History)"], a: 2, e: "The book is primarily about architecture (720s). The specific religious aspect (mosques) would be added through number building, resulting in a number like 726." }
+            ]
+        ];
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const introSplash = document.getElementById('intro-splash');
+            const accessGate = document.getElementById('access-gate');
+            
+            // Total duration of the splash screen
+            setTimeout(() => {
+                introSplash.classList.add('fade-out');
+
+                // Wait for fade-out to complete before hiding and showing the main content
+                setTimeout(() => {
+                    introSplash.style.display = 'none';
+                    
+                    // Show the access gate again so the logic can run
+                    accessGate.classList.remove('hidden');
+                    accessGate.classList.add('flex');
+                    
+                    // Now initialize the main logic
+                    initAccessGate();
+
+                }, 500); // This should match the fade-out animation duration
+            }, 4000); // Total splash screen time
+        });
+    </script>
+</body>
+</html>
+
+
